@@ -1,0 +1,3221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Inventory System | AI DL, CV & Supabase Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-surface: #0e131f;
+      --bg-card: rgba(18, 24, 38, 0.78);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-active: rgba(6, 182, 212, 0.5);
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-violet: #8b5cf6;
+      --accent-rose: #f43f5e;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 10% 20%, rgba(6, 182, 212, 0.08) 0px, transparent 50%),
+        radial-gradient(at 90% 80%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    header {
+      background: rgba(14, 19, 31, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-badge {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    /* 4 MAIN TABS + SUPABASE VIEWER */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .nav-tab {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-tab:hover {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-tab.active {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(139, 92, 246, 0.25));
+      border-color: var(--accent-cyan);
+      color: var(--text-main);
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.25);
+    }
+
+    .nav-tab.tab-db {
+      border-color: rgba(139, 92, 246, 0.4);
+    }
+    .nav-tab.tab-db.active {
+      border-color: var(--accent-violet);
+      box-shadow: 0 0 16px rgba(139, 92, 246, 0.3);
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: var(--accent-emerald);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+    .status-dot.offline {
+      background: var(--accent-rose);
+      box-shadow: 0 0 8px var(--accent-rose);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* MAIN CONTAINER VIEWS */
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 24px;
+      position: relative;
+    }
+
+    .view-section {
+      display: none;
+      flex-direction: column;
+      gap: 24px;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .view-section.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* CARD STYLING */
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      position: relative;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* BUTTONS */
+    .btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0891b2, #0369a1);
+      box-shadow: 0 6px 16px rgba(6, 182, 212, 0.45);
+    }
+
+    .btn-emerald {
+      background: linear-gradient(135deg, var(--accent-emerald), #059669);
+      color: #fff;
+      border: none;
+    }
+
+    .btn-rose {
+      background: linear-gradient(135deg, var(--accent-rose), #e11d48);
+      color: #fff;
+      border: none;
+    }
+
+    .btn-amber {
+      background: linear-gradient(135deg, var(--accent-amber), #d97706);
+      color: #fff;
+      border: none;
+    }
+
+    /* INPUTS & SELECTS */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .form-control {
+      background: rgba(14, 19, 31, 0.8);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+      width: 100%;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+    }
+
+    /* BADGES */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge-edible {
+      background: rgba(16, 185, 129, 0.18);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .badge-non-edible {
+      background: rgba(6, 182, 212, 0.18);
+      color: #38bdf8;
+      border: 1px solid rgba(6, 182, 212, 0.4);
+    }
+    .badge-verify {
+      background: rgba(245, 158, 11, 0.18);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .badge-expired {
+      background: rgba(244, 63, 94, 0.2);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.4);
+    }
+    .badge-good {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .badge-best {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    /* ============================================================ */
+    /* TAB 1: CAMERA SETTINGS */
+    /* ============================================================ */
+    .camera-type-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .camera-type-card {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .camera-type-card.selected {
+      border-color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.08);
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.18);
+    }
+
+    .camera-settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 24px;
+    }
+    @media (max-width: 1024px) {
+      .camera-settings-grid { grid-template-columns: 1fr; }
+    }
+
+    .preview-box {
+      width: 100%;
+      height: 380px;
+      background: #000;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .preview-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .preview-overlay {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+    }
+
+    /* ============================================================ */
+    /* TAB 2: PRODUCT RECOGNITION (CNN & BARCODE MODE) */
+    /* ============================================================ */
+    .mode-toggle-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      background: rgba(14, 19, 31, 0.6);
+      padding: 6px;
+      border-radius: var(--radius-sm);
+      width: fit-content;
+    }
+
+    .mode-toggle-btn {
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .mode-toggle-btn.active {
+      background: var(--accent-cyan);
+      color: #07090e;
+      box-shadow: 0 2px 10px rgba(6, 182, 212, 0.4);
+    }
+
+    .recognition-layout {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 1024px) {
+      .recognition-layout { grid-template-columns: 1fr; }
+    }
+
+    .viewfinder-wrapper {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      background: #05070b;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 2px solid rgba(6, 182, 212, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .live-stream-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .laser-line {
+      position: absolute;
+      top: 50%;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #06b6d4, #f43f5e, #06b6d4, transparent);
+      box-shadow: 0 0 12px #f43f5e;
+      animation: scanLaser 2.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes scanLaser {
+      0% { top: 18%; }
+      100% { top: 82%; }
+    }
+
+    .scanner-target-box {
+      position: absolute;
+      width: 65%;
+      height: 50%;
+      border: 2px dashed rgba(255, 255, 255, 0.35);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+
+    /* ============================================================ */
+    /* TAB 3: SHELF & LAYOUT INSPECTION */
+    /* ============================================================ */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .kpi-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-main);
+    }
+
+    .shelf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .shelf-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+    .shelf-card:hover {
+      border-color: var(--border-active);
+    }
+
+    .shelf-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 10px;
+    }
+
+    .shelf-badge-id {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.2));
+      color: var(--accent-cyan);
+      border: 1px solid var(--border-active);
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 0.85rem;
+    }
+
+    .shelf-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    /* ============================================================ */
+    /* TAB 4: TREND ANALYSIS */
+    /* ============================================================ */
+    .period-filter-bar {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px 6px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .btn-period {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .btn-period:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .btn-period.active {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(139, 92, 246, 0.25));
+      border-color: var(--accent-cyan);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.25);
+    }
+
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 330px;
+      margin-top: 10px;
+    }
+
+    .restock-alert-card {
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.09), rgba(18, 24, 38, 0.92));
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .restock-alert-card:hover {
+      border-color: var(--accent-rose);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(244, 63, 94, 0.15);
+    }
+    .restock-alert-card.high-priority {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.09), rgba(18, 24, 38, 0.92));
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+    .restock-alert-card.high-priority:hover {
+      border-color: var(--accent-amber);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.15);
+    }
+
+    .badge-priority-critical {
+      background: rgba(244, 63, 94, 0.2);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.45);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-priority-high {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-priority-normal {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-trending-tag {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .trends-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .insight-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .insight-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .insight-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+    }
+
+    .insight-headline {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .insight-detail {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* TABLE STYLES */
+    .table-responsive {
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    .data-table th {
+      background: rgba(14, 19, 31, 0.95);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+
+    .data-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* MODAL DIALOGS */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-backdrop.show { display: flex; }
+
+    .modal-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 580px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+      animation: modalSlide 0.25s ease-out;
+    }
+
+    @keyframes modalSlide {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(14, 19, 31, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-active);
+      color: var(--text-main);
+      padding: 14px 22px;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      transform: translateY(120px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 999;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <div class="brand-title">
+          Smart Inventory System
+          <span class="brand-badge">DL + CV + Cloud</span>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-dim);">17 Categories • Visual Shelf Hub • Supabase</div>
+      </div>
+    </div>
+
+    <!-- 4 MAIN TABS + SUPABASE UTILITY -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" id="tab-camera" onclick="switchTab('camera')">
+        📷 Camera Settings
+      </button>
+      <button class="nav-tab" id="tab-recognition" onclick="switchTab('recognition')">
+        🔍 Product Recognition
+      </button>
+      <button class="nav-tab" id="tab-shelves" onclick="switchTab('shelves')">
+        🏬 Shelf & Layout Inspection
+      </button>
+      <button class="nav-tab" id="tab-trends" onclick="switchTab('trends')">
+        📈 Trend Analysis
+      </button>
+      <button class="nav-tab tab-db" id="tab-database" onclick="switchTab('database')">
+        🗄️ Supabase Database
+      </button>
+    </nav>
+
+    <div class="header-status">
+      <div class="status-pill">
+        <div class="status-dot" id="header-status-dot"></div>
+        <span id="header-cam-status">Camera: Initializing</span>
+      </div>
+      <button class="btn btn-emerald" style="padding: 6px 12px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;" onclick="openDiagnosticsModal()" title="View System & Hardware Diagnostics">
+        🩺 Diagnostics
+      </button>
+      <button class="btn" style="padding: 6px 10px;" onclick="refreshCurrentTab()" title="Refresh Current Tab">🔄</button>
+    </div>
+  </header>
+
+  <!-- MAIN APP VIEWS -->
+  <main>
+
+    <!-- ============================================================ -->
+    <!-- TAB 1: CAMERA SETTINGS AND WEBCAM SWITCHING (FEATURE 1) -->
+    <!-- ============================================================ -->
+    <section class="view-section active" id="view-camera">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">📷 Camera Settings & Connection Hub</div>
+            <div class="card-subtitle">Select between your laptop's built-in webcam and your phone camera (via USB or network stream).</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn" onclick="testActiveCameraConnection()">⚡ Test Connection</button>
+            <button class="btn btn-primary" onclick="applyCameraAcrossApp()">✅ Apply Across Application</button>
+          </div>
+        </div>
+
+        <!-- 2 Primary Camera Options -->
+        <div class="camera-type-selector">
+          <div class="camera-type-card selected" id="card-choice-laptop" onclick="selectCameraType('laptop')">
+            <div style="font-size: 1.1rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
+              💻 Laptop Built-in Webcam
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">
+              Uses local DirectShow video device index 0. Ideal for laptop product scanning.
+            </div>
+            <span class="badge badge-edible" style="width: fit-content; margin-top: 4px;">DEFAULT CAMERA</span>
+          </div>
+
+          <div class="camera-type-card" id="card-choice-phone" onclick="selectCameraType('phone')">
+            <div style="font-size: 1.1rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
+              📱 Phone Camera (Gradio / Network Stream)
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">
+              Connects via DroidCam/Iriun virtual webcam OR Gradio/IP camera stream URL.
+            </div>
+            <span class="badge badge-non-edible" style="width: fit-content; margin-top: 4px;">MOBILE / SHELF INSPECTION</span>
+          </div>
+        </div>
+
+        <div class="camera-settings-grid">
+          <!-- Configuration Controls -->
+          <div>
+            <!-- Laptop Webcam Controls -->
+            <div id="laptop-camera-controls">
+              <div class="form-group">
+                <label class="form-label" for="laptop-cam-select">Laptop Webcam Device</label>
+                <select id="laptop-cam-select" class="form-control">
+                  <option value="0">Default Integrated Webcam (Device 0)</option>
+                  <option value="1">Secondary Webcam (Device 1)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Phone Camera Controls -->
+            <div id="phone-camera-controls" style="display: none;">
+              <div class="form-group">
+                <label class="form-label" for="phone-mode-select">Phone Connection Method</label>
+                <select id="phone-mode-select" class="form-control" onchange="onPhoneModeChanged()">
+                  <option value="stream">Gradio / IP Camera Stream URL (HTTP/RTSP)</option>
+                  <option value="device">USB / Virtual Camera Device (DroidCam / Iriun)</option>
+                </select>
+              </div>
+
+              <div class="form-group" id="group-phone-url">
+                <label class="form-label" for="phone-stream-url">Phone Camera Stream URL</label>
+                <input type="text" id="phone-stream-url" class="form-control" placeholder="http://192.168.1.50:8080/video" value="http://192.168.1.100:8080/video" style="font-family: 'JetBrains Mono';">
+                <span style="font-size: 0.72rem; color: var(--text-dim);">Enter your phone's IP Webcam or Gradio stream address.</span>
+              </div>
+
+              <div class="form-group" id="group-phone-device" style="display: none;">
+                <label class="form-label" for="phone-device-select">Virtual Camera Device Index</label>
+                <select id="phone-device-select" class="form-control">
+                  <option value="1">Device Index 1 (DroidCam Source / Iriun)</option>
+                  <option value="2">Device Index 2 (OBS Virtual Camera)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 14px;">
+              <button class="btn btn-emerald" onclick="connectSelectedCamera()" style="flex: 1;">▶ Connect & Start Stream</button>
+              <button class="btn btn-rose" onclick="disconnectCameraStream()" style="flex: 1;">⏹ Release Stream</button>
+            </div>
+
+            <div style="margin-top: 14px; font-size: 0.8rem; color: var(--text-dim);">
+              Active Camera Target: <span id="active-device-label" style="font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan);">Laptop Webcam (Device 0)</span>
+            </div>
+            <div style="margin-top: 4px; font-size: 0.8rem; color: var(--text-dim);">
+              Connection Status: <strong id="active-connection-status" style="color: var(--accent-emerald);">Testing...</strong>
+            </div>
+
+            <!-- Phone Setup Instructions -->
+            <div style="margin-top: 16px; padding: 14px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-subtle); border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">
+              <strong style="color: var(--accent-cyan);">📱 How to Connect Phone Camera:</strong><br>
+              1. <strong>Gradio/IP Stream:</strong> Install IP Webcam on your phone, start server, and paste the URL (e.g. <code>http://192.168.x.x:8080/video</code>) above.<br>
+              2. <strong>USB/Virtual Webcam:</strong> Install DroidCam or Iriun on phone & PC, connect via USB cable, and select Device Index 1.
+            </div>
+          </div>
+
+          <!-- Live Preview Box -->
+          <div>
+            <div class="preview-box">
+              <img id="camera-stream-preview" class="live-stream-img" src="/video_feed" alt="Camera Stream" onerror="handleStreamError()">
+              <div class="preview-overlay">
+                <span id="preview-camera-type">Source: Laptop Webcam</span>
+                <span id="preview-fps" style="font-family: 'JetBrains Mono';">FPS: --</span>
+              </div>
+            </div>
+            <div style="margin-top: 10px; text-align: right;">
+              <span style="font-size: 0.78rem; color: var(--text-dim);">Streaming live via OpenCV threaded pipeline. Zero Gradio queue lag.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- TAB 2: PRODUCT RECOGNITION (CNN 17 CATEGORIES & BARCODE MODE) -->
+    <!-- ============================================================ -->
+    <section class="view-section" id="view-recognition">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🔍 Real-Time Product Recognition & Barcode Hub</div>
+            <div class="card-subtitle">Powered by YOLOv8s-World v2 with 17 trained categories and Supabase catalog synchronization.</div>
+          </div>
+          <div class="mode-toggle-bar">
+            <button class="mode-toggle-btn active" id="btn-mode-cnn" onclick="switchRecognitionMode('cnn')">👁️ Live CNN Recognition</button>
+            <button class="mode-toggle-btn" id="btn-mode-barcode" onclick="switchRecognitionMode('barcode')">🏷️ Barcode & Expiry Mode</button>
+          </div>
+        </div>
+
+        <!-- MODE A: LIVE CNN PRODUCT RECOGNITION -->
+        <div id="container-mode-cnn" class="recognition-layout">
+          <div>
+            <div class="viewfinder-wrapper">
+              <img id="recognition-video-feed" class="live-stream-img" src="/video_feed" alt="Recognition Stream">
+              <div style="position: absolute; top: 12px; left: 12px;">
+                <span class="badge" id="recognition-status-badge" style="background: rgba(0,0,0,0.7); color: var(--accent-cyan); border: 1px solid var(--accent-cyan);">
+                  CNN RECOGNITION ACTIVE
+                </span>
+              </div>
+            </div>
+
+            <!-- Recognition Controls -->
+            <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+              <button class="btn btn-primary" onclick="triggerProductRecognitionCapture()">📸 Capture & Classify</button>
+              <input type="file" id="recog-file-input" accept="image/*" style="display:none;" onchange="onProductPhotoUploaded(event)">
+              <button class="btn" onclick="document.getElementById('recog-file-input').click()">📁 Upload Photo</button>
+              <button class="btn btn-emerald" id="btn-start-recognition" onclick="toggleRecognitionPipeline(true)">▶ Start Live</button>
+              <button class="btn btn-rose" id="btn-stop-recognition" onclick="toggleRecognitionPipeline(false)">⏹ Stop Live</button>
+            </div>
+          </div>
+
+          <!-- Product Prediction Results Card -->
+          <div class="card" style="background: rgba(14, 19, 31, 0.7); display: flex; flex-direction: column; gap: 14px;">
+            <div class="card-header" style="margin-bottom: 0; padding-bottom: 8px;">
+              <div style="font-weight: 700; font-size: 0.95rem;">Model Prediction Output</div>
+              <span id="badge-recognition-conf" class="badge badge-verify">AWAITING CAPTURE</span>
+            </div>
+
+            <div style="padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 8px;">
+              <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Predicted Category</div>
+              <div id="display-predicted-category" style="font-size: 1.5rem; font-weight: 800; color: #fff;">--</div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+                <span>Confidence: <strong id="display-predicted-conf" style="color: var(--accent-cyan);">--%</strong></span>
+                <span>Latency: <strong id="display-predicted-time">-- ms</strong></span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-dim); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px; margin-top: 4px;">
+                <span>Prompt: <strong id="display-predicted-prompt" style="color: #cbd5e1;">--</strong></span>
+                <span>Box: <strong id="display-predicted-box" style="font-family: 'JetBrains Mono'; color: var(--accent-cyan);">--</strong></span>
+              </div>
+            </div>
+
+            <!-- Captured Image Evidence with HUD Bounding Boxes -->
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <span class="form-label">Captured Image Snapshot (with HUD Bounding Box)</span>
+              <div style="width: 100%; height: 180px; background: #000; border-radius: var(--radius-sm); overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-subtle); position: relative;">
+                <img id="img-captured-preview" src="" alt="Snapshot" style="width: 100%; height: 100%; object-fit: contain; display: none;">
+                <span id="label-no-snapshot" style="font-size: 0.78rem; color: var(--text-dim);">No snapshot captured yet</span>
+              </div>
+            </div>
+
+            <div id="box-uncertain-warning" style="display: none; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-sm); padding: 10px; font-size: 0.8rem; color: #fbbf24;">
+              ⚠️ <strong>Uncertain Identification:</strong> Model confidence is below threshold (&lt;20%). Please reposition product clearly with good lighting and capture again.
+            </div>
+
+            <div style="margin-top: auto; display: flex; gap: 8px;">
+              <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="sendIdentifiedToShelf()">➕ Allocate to Shelf</button>
+              <button class="btn" style="flex: 1; justify-content: center;" onclick="switchRecognitionMode('barcode')">🏷️ Verify Barcode</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODE B: BARCODE & EXPIRY INVENTORY SCANNER -->
+        <div id="container-mode-barcode" class="recognition-layout" style="display: none;">
+          <div>
+            <div class="viewfinder-wrapper">
+              <img id="barcode-stream-feed" class="live-stream-img" src="/video_feed" alt="Barcode Stream">
+              <div class="laser-line"></div>
+              <div class="scanner-target-box"></div>
+              <div style="position: absolute; top: 12px; left: 12px;">
+                <span class="badge" style="background: rgba(0,0,0,0.7); color: var(--accent-cyan); border: 1px solid var(--accent-cyan);">
+                  BARCODE SCANNER READY
+                </span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+              <button class="btn btn-primary" onclick="captureBarcodeScanFromCamera()">📸 Scan Barcode from Camera</button>
+              <input type="file" id="barcode-file-input" accept="image/*" style="display:none;" onchange="onBarcodePhotoUploaded(event)">
+              <button class="btn" onclick="document.getElementById('barcode-file-input').click()">📁 Upload Barcode Image</button>
+              <button class="btn" onclick="resetBarcodeScannerState()">🔄 Reset Scanner</button>
+            </div>
+          </div>
+
+          <!-- Barcode Verification & Stock Commitment Form -->
+          <div class="card" style="background: rgba(14, 19, 31, 0.7);">
+            <div class="card-header" style="margin-bottom: 12px; padding-bottom: 8px;">
+              <div style="font-weight: 700; font-size: 0.95rem;">Barcode Product Verification</div>
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <span id="badge-lookup-source" class="badge" style="display: none; background: rgba(139,92,246,0.15); color: var(--accent-violet); border: 1px solid rgba(139,92,246,0.3);">SOURCE</span>
+                <span id="badge-edibility" class="badge badge-verify">WAITING FOR SCAN</span>
+              </div>
+            </div>
+
+            <!-- Decoded Barcode Banner -->
+            <div id="barcode-decoded-banner" style="display: none; padding: 12px 14px; background: rgba(6, 182, 212, 0.08); border: 1px solid var(--accent-cyan); border-radius: var(--radius-sm); margin-bottom: 12px; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Decoded Barcode Number</div>
+                <div id="disp-decoded-barcode" style="font-size: 1.35rem; font-weight: 800; font-family: 'JetBrains Mono'; color: #fff;">--</div>
+              </div>
+              <div style="text-align: right;">
+                <span id="disp-barcode-format" class="badge" style="background: rgba(16,185,129,0.15); color: var(--accent-emerald); border: 1px solid rgba(16,185,129,0.3);">EAN-13</span>
+                <div id="disp-checksum-status" style="font-size: 0.72rem; color: var(--accent-emerald); margin-top: 3px;">✓ Checksum Valid</div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+              <input type="text" id="scan-barcode-input" class="form-control" placeholder="Barcode number (e.g. 8901063012486 or 3017620422003)" style="font-family: 'JetBrains Mono';">
+              <button class="btn btn-primary" onclick="triggerManualBarcodeLookup()">Lookup</button>
+            </div>
+
+            <!-- Product Details Review Box -->
+            <div id="product-meta-box" style="display: none; flex-direction: column; gap: 10px; margin-bottom: 14px; padding: 14px; background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <img id="img-product-thumb" src="" alt="Product Photo" style="width: 50px; height: 50px; object-fit: contain; border-radius: 6px; background: #000; border: 1px solid var(--border-subtle); display: none;">
+                <div style="flex: 1;">
+                  <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700;" id="prod-lookup-origin">Verified Product Record</div>
+                  <strong id="prod-name-display" style="font-size: 1.05rem; color: #fff;">--</strong>
+                  <div style="font-size: 0.78rem; color: var(--text-muted);" id="prod-brand-display">Brand: --</div>
+                </div>
+              </div>
+
+              <!-- Editable Inputs for Review -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px;">
+                <div class="form-group">
+                  <label class="form-label" for="inp-edit-name">Product Name</label>
+                  <input type="text" id="inp-edit-name" class="form-control" placeholder="Product name">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="sel-edit-category">Assigned Category</label>
+                  <select id="sel-edit-category" class="form-control">
+                    <option value="biscuit">Biscuits</option>
+                    <option value="chips">Chips &amp; Snacks</option>
+                    <option value="pen">Pens &amp; Writing</option>
+                    <option value="scale">Rulers &amp; Scales</option>
+                    <option value="phone">Smartphones</option>
+                    <option value="calculator">Calculators</option>
+                    <option value="headphone">Headphones</option>
+                    <option value="laptop">Laptops</option>
+                    <option value="books">Books &amp; Notebooks</option>
+                    <option value="pencils">Pencils</option>
+                    <option value="erasers">Erasers</option>
+                    <option value="keyboard">Keyboards</option>
+                    <option value="mouse">Computer Mice</option>
+                    <option value="toothpaste">Toothpaste</option>
+                    <option value="ball">Balls &amp; Sports</option>
+                    <option value="toothbrush">Toothbrushes</option>
+                    <option value="wires">Cables &amp; Wires</option>
+                    <option value="General">General / Packaged Good</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Conditional Expiry Form (Only for EDIBLE items) -->
+            <div id="edible-form-section" style="display: none; border-top: 1px solid var(--border-subtle); padding-top: 12px; margin-top: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 0.78rem; font-weight: 700; color: #34d399;">🥗 EDIBLE PRODUCT: DATE VERIFICATION REQUIRED</span>
+                <span id="badge-freshness" class="badge badge-best">FRESHNESS: BEST</span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                  <label class="form-label" for="inp-mfg-date">MFG / PKD Date</label>
+                  <input type="date" id="inp-mfg-date" class="form-control" value="2025-01-01">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="inp-exp-date">Expiry / Best Before</label>
+                  <input type="date" id="inp-exp-date" class="form-control" value="2027-12-31" onchange="evaluateExpiryStatus()">
+                </div>
+              </div>
+            </div>
+
+            <!-- Non-Edible Notice (For books, pens, stationery, laptops) -->
+            <div id="non-edible-notice" style="display: none; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.25); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 12px; font-size: 0.8rem; color: #38bdf8;">
+              ℹ️ <strong>Non-Edible Item:</strong> Expiry and manufacture dates are not required for this product type. Ready for direct shelf allocation.
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+              <div class="form-group">
+                <label class="form-label" for="inp-quantity">Quantity to Add</label>
+                <input type="number" id="inp-quantity" class="form-control" value="5" min="1" max="999">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="sel-shelf-id">Destination Shelf</label>
+                <select id="sel-shelf-id" class="form-control">
+                  <option value="A1">Shelf A1 (Snacks / Biscuits)</option>
+                  <option value="A2">Shelf A2 (Snacks / Chips)</option>
+                  <option value="A3">Shelf A3 (Beverages)</option>
+                  <option value="B1">Shelf B1 (Pens &amp; Scales)</option>
+                  <option value="B2">Shelf B2 (Pencils &amp; Books)</option>
+                  <option value="B3">Shelf B3 (Stationery)</option>
+                  <option value="C1">Shelf C1 (Toothpaste / Cables)</option>
+                  <option value="C2">Shelf C2 (Electronics)</option>
+                  <option value="C3">Shelf C3 (Hardware)</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn btn-emerald" id="btn-save-stock" style="width: 100%; margin-top: 10px; justify-content: center; font-size: 0.95rem;" onclick="confirmInventoryAddition()">
+              💾 Confirm &amp; Save Stock to Supabase
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    <!-- TAB 3: SHELF & LAYOUT INSPECTION (FEATURE 3) -->
+    <!-- ============================================================ -->
+    <section class="view-section" id="view-shelves">
+      <!-- Consistency KPI Cards -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <span class="kpi-label">🏬 Normal Shelf Stock</span>
+          <span class="kpi-value" id="kpi-normal-qty" style="color: var(--accent-cyan);">--</span>
+          <span style="font-size: 0.72rem; color: var(--text-dim);">Recorded retail units</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">⚠️ Misplaced Products</span>
+          <span class="kpi-value" id="kpi-misplaced-qty" style="color: var(--accent-amber);">0</span>
+          <span style="font-size: 0.72rem; color: var(--text-dim);">Wrong shelf location detected</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">📭 Empty Shelf Positions</span>
+          <span class="kpi-value" id="kpi-empty-qty" style="color: var(--accent-rose);">0</span>
+          <span style="font-size: 0.72rem; color: var(--text-dim);">Replenishment needed</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">📦 Monitored Shelves</span>
+          <span class="kpi-value" id="kpi-shelves-count" style="color: #fff;">9</span>
+          <span style="font-size: 0.72rem; color: var(--text-dim);">Shelves A1 through C3</span>
+        </div>
+      </div>
+
+      <!-- Live Camera Shelf Inspection Section -->
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">📹 Camera-Based Shelf Inventory & Layout Inspection</div>
+            <div class="card-subtitle">Point active camera at shelves to count products, detect misplaced items, and flag empty positions via CNN.</div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <select id="inspect-shelf-target" class="form-control" style="width: auto; min-width: 140px;">
+              <option value="A1">Shelf A1 (Biscuits)</option>
+              <option value="A2">Shelf A2 (Chips & Snacks)</option>
+              <option value="A3">Shelf A3 (Cookies & Snacks)</option>
+              <option value="B1">Shelf B1 (Pens & Scales)</option>
+              <option value="B2">Shelf B2 (Pencils & Books)</option>
+              <option value="B3">Shelf B3 (Stationery & Erasers)</option>
+              <option value="C1">Shelf C1 (Oral & Personal Care)</option>
+              <option value="C2">Shelf C2 (Electronics & Computing)</option>
+              <option value="C3">Shelf C3 (Cables & Hardware)</option>
+            </select>
+            <button class="btn btn-primary" onclick="inspectActiveShelfCamera()">📸 Inspect Live Shelf Frame</button>
+            <label class="btn" style="cursor: pointer; margin: 0;">
+              📁 Upload Shelf Photo
+              <input type="file" id="inp-shelf-upload" accept="image/*" style="display: none;" onchange="uploadShelfPhoto(this)">
+            </label>
+            <button class="btn" onclick="loadShelvesData()">🔄 Refresh Shelves</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
+          <!-- Camera Feed / Inspection Result -->
+          <div style="position: relative; width: 100%; height: 380px; background: #000; border-radius: var(--radius-sm); overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-subtle);">
+            <img id="shelf-inspect-img" src="/video_feed" alt="Shelf Stream" style="width: 100%; height: 100%; object-fit: contain;">
+            <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 4px; font-size: 0.75rem;">
+              <span id="shelf-inspect-label">Live Camera Feed</span>
+            </div>
+          </div>
+
+          <!-- Inspection Metrics & Alerts -->
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Detected Packages: <strong id="res-shelf-pkg-count" style="color: #fff;">--</strong></span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Misplaced Items: <strong id="res-shelf-misplaced-count" style="color: var(--accent-amber);">0</strong></span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Empty Positions: <strong id="res-shelf-empty-count" style="color: var(--accent-rose);">0</strong></span>
+              </div>
+              <div style="font-size: 0.78rem; color: var(--text-dim);" id="res-shelf-rec-notes">
+                Ready for camera inspection. Point camera at products on shelf and click "Inspect Live Shelf Frame".
+              </div>
+            </div>
+
+            <!-- Misplaced Products Alert Box -->
+            <div id="box-shelf-misplaced-alert" style="display: none; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-sm); padding: 12px;">
+              <div style="font-weight: 700; color: #fbbf24; margin-bottom: 4px; font-size: 0.9rem;">
+                ⚠️ Misplaced Products Detected
+              </div>
+              <div id="text-shelf-misplaced-details" style="font-size: 0.82rem; color: var(--text-main); line-height: 1.4;">
+                <!-- Filled dynamically -->
+              </div>
+            </div>
+
+            <!-- Empty Shelf & Out-of-Stock Alert Box -->
+            <div id="box-shelf-empty-alert" style="display: none; background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.35); border-radius: var(--radius-sm); padding: 12px;">
+              <div style="font-weight: 700; color: #fb7185; margin-bottom: 4px; font-size: 0.9rem;">
+                📭 Empty Shelf & Stock Alerts
+              </div>
+              <div id="text-shelf-empty-details" style="font-size: 0.82rem; color: var(--text-main); line-height: 1.4;">
+                <!-- Filled dynamically -->
+              </div>
+            </div>
+
+            <!-- Manual Stock Adjustment Review Card -->
+            <div class="card" style="background: rgba(255, 255, 255, 0.02); padding: 14px; margin-top: auto;">
+              <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 8px;">Review & Confirm Stock Adjustment (Never Automatic)</div>
+              <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <input type="text" id="inp-adj-prod" class="form-control" placeholder="Product name or category" style="font-size: 0.8rem;">
+                <input type="number" id="inp-adj-qty" class="form-control" placeholder="Confirmed qty" min="0" value="10" style="font-size: 0.8rem;">
+                <button class="btn btn-emerald" onclick="submitShelfStockAdjustment()" style="font-size: 0.8rem; justify-content: center;">💾 Confirm Sync</button>
+              </div>
+              <div style="font-size: 0.72rem; color: var(--text-dim);">
+                Stock is never automatically changed from camera images. Review observed count and confirm adjustment above.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Comparison Table Card -->
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">📋 Shelf Layout & Inventory Comparison Table</div>
+            <div class="card-subtitle">Detailed comparison between CNN visual count, expected planogram location, and Supabase recorded stock.</div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Category</th>
+                <th>Inspected Shelf</th>
+                <th>Expected Shelf</th>
+                <th>Observed Count (CNN)</th>
+                <th>Recorded Stock (Supabase)</th>
+                <th>Discrepancy</th>
+                <th>Status</th>
+                <th>Action & Guidance</th>
+              </tr>
+            </thead>
+            <tbody id="shelf-comparison-table-body">
+              <tr>
+                <td colspan="9" style="text-align: center; color: var(--text-dim); padding: 20px;">
+                  No shelf inspection data yet. Select a shelf and click "Inspect Live Shelf Frame" above.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Main Shelves Grid Display -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🏬 Main Inventory Shelves (Aisle Sections A1 - C3)</div>
+            <div class="card-subtitle">Real Supabase database stock levels across retail shelf rows.</div>
+          </div>
+          <button class="btn" onclick="loadShelvesData()">🔄 Refresh Shelves</button>
+        </div>
+
+        <div class="shelf-grid" id="main-shelves-grid">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- TAB 4: TREND ANALYSIS & DEMAND INSIGHTS (FEATURE 4) -->
+    <!-- ============================================================ -->
+    <section class="view-section" id="view-trends">
+      <!-- Section Header with Time Filters & Controls -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 4px;">📈 Smart Trend Analysis & Demand Intelligence</h2>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">
+            Real activity from Barcode Scans, Shelf Inspected Reductions, and Camera Detections joined with Supabase live inventory.
+          </p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <div class="period-filter-bar">
+            <span style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; padding: 0 4px;">Period:</span>
+            <button class="btn-period active" id="btn-period-7" onclick="changeTrendsPeriod(7)">Last 7 Days</button>
+            <button class="btn-period" id="btn-period-14" onclick="changeTrendsPeriod(14)">Last 14 Days</button>
+            <button class="btn-period" id="btn-period-30" onclick="changeTrendsPeriod(30)">Last 30 Days</button>
+          </div>
+          <button class="btn btn-primary" onclick="loadTrendsData(currentTrendsPeriod)">🔄 Refresh Trends</button>
+        </div>
+      </div>
+
+      <!-- 1. TOP 5 TRENDING PRODUCTS BAR CHART CARD -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🏆 Top 5 Trending Products</div>
+            <div class="card-subtitle" id="chart-subtitle">
+              Ranked by composite trend score (0-100) combining barcode scan spikes, shelf position decreases, and verified stock movement.
+            </div>
+          </div>
+          <div id="chart-period-badge" style="font-size: 0.75rem; background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); border: 1px solid rgba(6, 182, 212, 0.35); padding: 4px 10px; border-radius: 6px; font-weight: 700;">
+            Comparing with prior 7-day period
+          </div>
+        </div>
+
+        <div id="chart-loading-state" style="display: none; text-align: center; padding: 36px; color: var(--accent-cyan); font-family: 'JetBrains Mono';">
+          Computing multi-source trend ranking from Supabase events...
+        </div>
+
+        <div id="chart-empty-state" style="display: none; text-align: center; padding: 36px; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: var(--radius-sm); border: 1px dashed var(--border-subtle);">
+          <div style="font-size: 1.6rem; margin-bottom: 8px;">📊</div>
+          <div style="font-weight: 700; color: #fff;">Insufficient Activity Data in Selected Period</div>
+          <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 4px;" id="chart-empty-reason">
+            No barcode scans or confirmed shelf movements recorded in this timeframe. Perform scans or shelf inspections to generate trend signals.
+          </div>
+        </div>
+
+        <div class="chart-wrapper" id="chart-canvas-container">
+          <canvas id="chart-top5-trending"></canvas>
+        </div>
+
+        <!-- Metric Details below chart -->
+        <div id="top5-metric-pills" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+          <!-- Dynamically filled with top 5 rank cards -->
+        </div>
+      </div>
+
+      <!-- 2. TRENDING PRODUCTS REQUIRING RESTOCK (DEDICATED SECTION) -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🚨 Trending Products Requiring Restock</div>
+            <div class="card-subtitle">
+              High product activity / upward demand trajectory where actual Supabase inventory is at or below the calculated Reorder Point (ROP).
+            </div>
+          </div>
+          <span class="badge badge-expired" id="badge-trending-restock-count">0 Requiring Restock</span>
+        </div>
+
+        <div id="trending-restock-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px;">
+          <!-- Filled dynamically -->
+        </div>
+
+        <!-- Sufficient Stock Note when trending products have enough stock -->
+        <div id="trending-sufficient-note" style="display: none; margin-top: 14px; padding: 12px 16px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); font-size: 0.82rem; color: #6ee7b7;">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+
+      <!-- 3. TOP KPI SUMMARY CARDS (6 Insights) -->
+      <div class="trends-grid" id="written-insights-container">
+        <!-- Populated dynamically: Top Trending, Highest Predicted Demand, Low Stock Alert, Urgent Reorder, Demand Trend Summary, Data Coverage -->
+      </div>
+
+      <!-- 4. PRODUCT-LEVEL TREND & INVENTORY REORDER TABLE -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">📋 Product-Level Trend & Replenishment Intelligence</div>
+            <div class="card-subtitle">
+              Individual inventory records, observed scan activity, confirmed shelf movements, statistical ROP, and user-confirmed restock orders.
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="trends-table-filter" class="form-control" placeholder="Search product or category..." style="width: 220px; font-size: 0.8rem;" oninput="filterTrendsTable()">
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Category</th>
+                <th>Barcode Scans</th>
+                <th>Confirmed Movement</th>
+                <th>Current Stock</th>
+                <th>Avg Daily Demand</th>
+                <th>Predicted Demand</th>
+                <th>Trend Score</th>
+                <th>Direction</th>
+                <th>Reorder Point (ROP)</th>
+                <th>Suggested Reorder</th>
+                <th>Restock Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="trends-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- ADDITIONAL TAB: SUPABASE DATABASE VIEWER -->
+    <!-- ============================================================ -->
+    <section class="view-section" id="view-database">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🗄️ Supabase Cloud Database Inspector</div>
+            <div class="card-subtitle">Direct live viewer for connected tables: products, stock, inventory, shelf_counts, and barcode_scans.</div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <select id="db-table-select" class="form-control" style="width: auto; min-width: 200px;" onchange="loadDatabaseTable(1)">
+              <option value="trend_inventory_products">trend_inventory_products (Feature 4 Approved 17 Categories)</option>
+              <option value="trend_inventory_events">trend_inventory_events (Feature 4 Activity Logs)</option>
+              <option value="trend_inventory_forecasts">trend_inventory_forecasts (Feature 4 Predictions)</option>
+              <option value="products">products (Legacy Catalog)</option>
+              <option value="stock">stock (Warehouse Inventory)</option>
+              <option value="inventory">inventory (Event logs)</option>
+              <option value="shelf_counts">shelf_counts (Visual audit)</option>
+              <option value="barcode_scans">barcode_scans (Scan history)</option>
+              <option value="demand_predictions">demand_predictions (Legacy Forecasts)</option>
+            </select>
+            <input type="text" id="db-search-input" class="form-control" placeholder="Search table..." style="width: 200px;" onkeyup="if(event.key==='Enter') loadDatabaseTable(1)">
+            <button class="btn btn-primary" onclick="loadDatabaseTable(1)">Search</button>
+            <button class="btn" onclick="loadDatabaseTable(1)">🔄 Refresh</button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.8rem; color: var(--text-dim);">
+          <span id="db-table-info">Loading database records...</span>
+          <div id="db-pagination-controls" style="display: flex; gap: 8px; align-items: center;">
+            <button class="btn" style="padding: 4px 10px;" id="btn-db-prev" onclick="changeDbPage(-1)">‹ Prev</button>
+            <span id="db-page-num" style="font-family: 'JetBrains Mono';">Page 1 of 1</span>
+            <button class="btn" style="padding: 4px 10px;" id="btn-db-next" onclick="changeDbPage(1)">Next ›</button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table" id="db-data-table">
+            <thead id="db-table-head"></thead>
+            <tbody id="db-table-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast" id="toast-notify">
+    <span id="toast-icon">ℹ️</span>
+    <span id="toast-message">Notification message</span>
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    // State variables
+    let currentTab = 'camera';
+    let currentRecognitionMode = 'cnn';
+    let selectedCameraType = localStorage.getItem('selectedCameraType') || 'laptop';
+    let activeCameraSource = localStorage.getItem('activeCameraSource') || '0';
+    let isRecognitionLoopRunning = true;
+    let dbCurrentPage = 1;
+    let dbCurrentTable = 'products';
+    let currentScannedBarcodeProduct = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initCameraSettingsUI();
+      checkCameraStatus();
+      loadShelvesData();
+      loadTrendsData();
+    });
+
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast-notify');
+      const icon = document.getElementById('toast-icon');
+      const msg = document.getElementById('toast-message');
+
+      icon.textContent = type === 'success' ? '✅' : (type === 'error' ? '❌' : (type === 'warning' ? '⚠️' : 'ℹ️'));
+      msg.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    function switchTab(tabKey) {
+      currentTab = tabKey;
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+
+      const activeTabBtn = document.getElementById(`tab-${tabKey}`);
+      const activeView = document.getElementById(`view-${tabKey}`);
+      if (activeTabBtn) activeTabBtn.classList.add('active');
+      if (activeView) activeView.classList.add('active');
+
+      if (tabKey === 'camera') {
+        checkCameraStatus();
+      } else if (tabKey === 'recognition') {
+        checkCameraStatus();
+      } else if (tabKey === 'shelves') {
+        loadShelvesData();
+      } else if (tabKey === 'trends') {
+        loadTrendsData();
+      } else if (tabKey === 'database') {
+        loadDatabaseTable(1);
+      }
+    }
+
+    function refreshCurrentTab() {
+      switchTab(currentTab);
+      showToast(`Refreshed ${currentTab} view`, 'info');
+    }
+
+    // ============================================================
+    // FEATURE 1: CAMERA SETTINGS & CONNECTION MANAGEMENT
+    // ============================================================
+    function initCameraSettingsUI() {
+      selectCameraType(selectedCameraType, false);
+    }
+
+    function selectCameraType(type, triggerSwitch = false) {
+      selectedCameraType = type;
+      localStorage.setItem('selectedCameraType', type);
+
+      const cardLaptop = document.getElementById('card-choice-laptop');
+      const cardPhone = document.getElementById('card-choice-phone');
+      const laptopControls = document.getElementById('laptop-camera-controls');
+      const phoneControls = document.getElementById('phone-camera-controls');
+
+      if (type === 'laptop') {
+        cardLaptop.classList.add('selected');
+        cardPhone.classList.remove('selected');
+        laptopControls.style.display = 'block';
+        phoneControls.style.display = 'none';
+        document.getElementById('active-device-label').textContent = 'Laptop Built-in Webcam (Device 0)';
+        document.getElementById('preview-camera-type').textContent = 'Source: Laptop Webcam';
+        if (triggerSwitch) connectSelectedCamera();
+      } else {
+        cardLaptop.classList.remove('selected');
+        cardPhone.classList.add('selected');
+        laptopControls.style.display = 'none';
+        phoneControls.style.display = 'block';
+        document.getElementById('active-device-label').textContent = 'Phone Camera (Gradio / Stream)';
+        document.getElementById('preview-camera-type').textContent = 'Source: Phone Camera';
+        if (triggerSwitch) connectSelectedCamera();
+      }
+    }
+
+    function onPhoneModeChanged() {
+      const mode = document.getElementById('phone-mode-select').value;
+      const groupUrl = document.getElementById('group-phone-url');
+      const groupDevice = document.getElementById('group-phone-device');
+
+      if (mode === 'stream') {
+        groupUrl.style.display = 'block';
+        groupDevice.style.display = 'none';
+      } else {
+        groupUrl.style.display = 'none';
+        groupDevice.style.display = 'block';
+      }
+    }
+
+    function getSelectedCameraSource() {
+      if (selectedCameraType === 'laptop') {
+        return parseInt(document.getElementById('laptop-cam-select').value, 10) || 0;
+      } else {
+        const mode = document.getElementById('phone-mode-select').value;
+        if (mode === 'stream') {
+          return document.getElementById('phone-stream-url').value.trim() || 'http://192.168.1.100:8080/video';
+        } else {
+          return parseInt(document.getElementById('phone-device-select').value, 10) || 1;
+        }
+      }
+    }
+
+    async function checkCameraStatus() {
+      try {
+        const res = await fetch('/api/camera/status');
+        const data = await res.json();
+        const dot = document.getElementById('header-status-dot');
+        const txt = document.getElementById('header-cam-status');
+        const previewFps = document.getElementById('preview-fps');
+        const activeConn = document.getElementById('active-connection-status');
+
+        if (data.connected) {
+          dot.className = 'status-dot';
+          txt.textContent = `Camera: ${data.source_type === 'laptop_webcam' ? 'Laptop' : 'Phone'} (${data.fps} FPS)`;
+          if (previewFps) previewFps.textContent = `FPS: ${data.fps}`;
+          if (activeConn) {
+            activeConn.textContent = `🟢 Connected (${data.fps} FPS)`;
+            activeConn.style.color = 'var(--accent-emerald)';
+          }
+        } else {
+          dot.className = 'status-dot offline';
+          txt.textContent = 'Camera: Offline';
+          if (previewFps) previewFps.textContent = 'FPS: 0 (Offline)';
+          if (activeConn) {
+            activeConn.textContent = '🔴 Disconnected / Unavailable';
+            activeConn.style.color = 'var(--accent-rose)';
+          }
+        }
+      } catch (err) {
+        console.error('Error checking camera status:', err);
+      }
+    }
+
+    async function testActiveCameraConnection() {
+      const src = getSelectedCameraSource();
+      showToast(`Testing connection to '${src}'...`, 'info');
+      try {
+        const res = await fetch('/api/camera/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ src: src })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Camera verified: ${data.message}`, 'success');
+        } else {
+          showToast(`Camera check failed: ${data.message}`, 'error');
+        }
+      } catch (err) {
+        showToast(`Test error: ${err.message}`, 'error');
+      }
+    }
+
+    async function connectSelectedCamera() {
+      const src = getSelectedCameraSource();
+      showToast(`Connecting to camera source '${src}'...`, 'info');
+      try {
+        const res = await fetch('/api/camera/switch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ src: src })
+        });
+        const data = await res.json();
+        if (data.success) {
+          activeCameraSource = src;
+          localStorage.setItem('activeCameraSource', src);
+          showToast(data.message, data.connected ? 'success' : 'warning');
+          reloadVideoFeeds();
+          setTimeout(checkCameraStatus, 800);
+        } else {
+          showToast(`Switch failed: ${data.error}`, 'error');
+        }
+      } catch (err) {
+        showToast(`Connection error: ${err.message}`, 'error');
+      }
+    }
+
+    async function disconnectCameraStream() {
+      showToast('Releasing camera stream...', 'info');
+      try {
+        await fetch('/api/toggle_pause', { method: 'POST' });
+        showToast('Camera stream stopped.', 'info');
+        checkCameraStatus();
+      } catch (err) {
+        showToast(`Error: ${err.message}`, 'error');
+      }
+    }
+
+    function applyCameraAcrossApp() {
+      connectSelectedCamera();
+      showToast('Camera configuration applied globally across all tabs!', 'success');
+    }
+
+    function reloadVideoFeeds() {
+      const t = Date.now();
+      const p1 = document.getElementById('camera-stream-preview');
+      const p2 = document.getElementById('recognition-video-feed');
+      const p3 = document.getElementById('barcode-stream-feed');
+      const p4 = document.getElementById('shelf-inspect-img');
+
+      if (p1) p1.src = `/video_feed?t=${t}`;
+      if (p2) p2.src = `/video_feed?t=${t}`;
+      if (p3) p3.src = `/video_feed?t=${t}`;
+      if (p4) p4.src = `/video_feed?t=${t}`;
+    }
+
+    function handleStreamError() {
+      const activeConn = document.getElementById('active-connection-status');
+      if (activeConn) {
+        activeConn.textContent = '🔴 Stream error / disconnected';
+        activeConn.style.color = 'var(--accent-rose)';
+      }
+    }
+
+    // ============================================================
+    // FEATURE 2: PRODUCT RECOGNITION (CNN & BARCODE MODE)
+    // ============================================================
+    function switchRecognitionMode(mode) {
+      currentRecognitionMode = mode;
+      const btnCnn = document.getElementById('btn-mode-cnn');
+      const btnBarcode = document.getElementById('btn-mode-barcode');
+      const boxCnn = document.getElementById('container-mode-cnn');
+      const boxBarcode = document.getElementById('container-mode-barcode');
+
+      if (mode === 'cnn') {
+        btnCnn.classList.add('active');
+        btnBarcode.classList.remove('active');
+        boxCnn.style.display = 'grid';
+        boxBarcode.style.display = 'none';
+      } else {
+        btnCnn.classList.remove('active');
+        btnBarcode.classList.add('active');
+        boxCnn.style.display = 'none';
+        boxBarcode.style.display = 'grid';
+      }
+    }
+
+    async function toggleRecognitionPipeline(start) {
+      try {
+        const res = await fetch('/api/recognition/toggle', { method: 'POST' });
+        const data = await res.json();
+        const badge = document.getElementById('recognition-status-badge');
+        if (data.running) {
+          badge.textContent = 'CNN RECOGNITION ACTIVE';
+          badge.style.color = 'var(--accent-cyan)';
+          badge.style.borderColor = 'var(--accent-cyan)';
+          showToast('Live CNN Recognition started.', 'success');
+        } else {
+          badge.textContent = 'CNN RECOGNITION PAUSED';
+          badge.style.color = 'var(--accent-amber)';
+          badge.style.borderColor = 'var(--accent-amber)';
+          showToast('Live CNN Recognition paused.', 'info');
+        }
+      } catch (err) {
+        showToast(`Toggle error: ${err.message}`, 'error');
+      }
+    }
+
+    function updateRecognitionDisplay(data) {
+      const catDisplay = document.getElementById('display-predicted-category');
+      const confDisplay = document.getElementById('display-predicted-conf');
+      const timeDisplay = document.getElementById('display-predicted-time');
+      const promptDisplay = document.getElementById('display-predicted-prompt');
+      const boxDisplay = document.getElementById('display-predicted-box');
+      const confBadge = document.getElementById('badge-recognition-conf');
+      const warnBox = document.getElementById('box-uncertain-warning');
+      const snapshotImg = document.getElementById('img-captured-preview');
+      const noSnapshotLabel = document.getElementById('label-no-snapshot');
+
+      if (!data.success) {
+        showToast(`Inference error: ${data.error}`, 'error');
+        if (catDisplay) catDisplay.textContent = 'Error';
+        if (confBadge) {
+          confBadge.textContent = 'INFERENCE FAILED';
+          confBadge.className = 'badge badge-expired';
+        }
+        return;
+      }
+
+      catDisplay.textContent = data.predicted_category || 'Uncertain';
+      confDisplay.textContent = data.confidence_pct || `${Math.round((data.confidence || 0) * 100)}%`;
+      timeDisplay.textContent = `${data.inference_time_ms || 0} ms`;
+      if (promptDisplay) promptDisplay.textContent = data.raw_prompt || '--';
+      if (boxDisplay) {
+        boxDisplay.textContent = data.bbox && data.bbox.length === 4 ? `[${data.bbox.join(', ')}]` : 'None';
+      }
+
+      if (data.snapshot_url) {
+        snapshotImg.src = data.snapshot_url + '?t=' + Date.now();
+        snapshotImg.style.display = 'block';
+        if (noSnapshotLabel) noSnapshotLabel.style.display = 'none';
+      }
+
+      if (data.status === 'UNCERTAIN' || data.predicted_category === 'Uncertain') {
+        confBadge.textContent = `UNCERTAIN (${data.confidence_pct || 'Low'})`;
+        confBadge.className = 'badge badge-verify';
+        warnBox.style.display = 'block';
+        showToast('Model is uncertain (<20% conf). Please center product under good light.', 'warning');
+      } else {
+        confBadge.textContent = `CONFIDENT (${data.confidence_pct})`;
+        confBadge.className = 'badge badge-best';
+        warnBox.style.display = 'none';
+        showToast(data.message || `Identified ${data.predicted_category} (${data.confidence_pct})`, 'success');
+      }
+    }
+
+    async function triggerProductRecognitionCapture() {
+      showToast('Running 17-category CNN inference...', 'info');
+      try {
+        const res = await fetch('/api/recognition/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await res.json();
+        updateRecognitionDisplay(data);
+      } catch (err) {
+        showToast(`Capture failed: ${err.message}`, 'error');
+      }
+    }
+
+    async function onProductPhotoUploaded(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      showToast(`Uploading ${file.name} for CNN recognition...`, 'info');
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const res = await fetch('/api/recognition/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image_b64: e.target.result })
+          });
+          const data = await res.json();
+          updateRecognitionDisplay(data);
+        } catch (err) {
+          showToast(`Photo recognition failed: ${err.message}`, 'error');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function sendIdentifiedToShelf() {
+      const cat = document.getElementById('display-predicted-category').textContent;
+      if (cat === '--' || cat === 'Uncertain' || cat === 'Error') {
+        showToast('Please capture a confident product identification first.', 'warning');
+        return;
+      }
+      showToast(`Redirecting '${cat}' to Shelf & Layout Inspection...`, 'info');
+      switchTab('shelves');
+    }
+
+    // Barcode sub-mode functions
+    async function captureBarcodeScanFromCamera() {
+      showToast('Decoding barcode from camera stream...', 'info');
+      try {
+        const res = await fetch('/api/barcode/decode_frame', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await res.json();
+
+        if (data.success && data.detected && data.barcodes && data.barcodes.length > 0) {
+          const first = data.barcodes[0];
+          document.getElementById('scan-barcode-input').value = first.barcode;
+          handleIdentifiedBarcodeProduct(first);
+          showToast(`Decoded barcode: ${first.barcode} (${first.format})`, 'success');
+        } else {
+          showToast('No barcode detected in camera frame. Ensure barcode is centered and focused.', 'warning');
+        }
+      } catch (err) {
+        showToast(`Decode failed: ${err.message}`, 'error');
+      }
+    }
+
+    async function onBarcodePhotoUploaded(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      showToast(`Decoding barcode from ${file.name}...`, 'info');
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const res = await fetch('/api/barcode/decode_frame', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image_b64: e.target.result })
+          });
+          const data = await res.json();
+          if (data.success && data.detected && data.barcodes && data.barcodes.length > 0) {
+            const first = data.barcodes[0];
+            document.getElementById('scan-barcode-input').value = first.barcode;
+            handleIdentifiedBarcodeProduct(first);
+            showToast(`Decoded barcode: ${first.barcode} (${first.format})`, 'success');
+          } else {
+            showToast('No readable barcode found in uploaded image. Please ensure high contrast and focus.', 'warning');
+          }
+        } catch (err) {
+          showToast(`Barcode photo decode error: ${err.message}`, 'error');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function triggerManualBarcodeLookup() {
+      const bcode = document.getElementById('scan-barcode-input').value.trim();
+      if (!bcode) {
+        showToast('Please enter a barcode string', 'warning');
+        return;
+      }
+      showToast(`Looking up barcode ${bcode}...`, 'info');
+      try {
+        const res = await fetch('/api/barcode/lookup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ barcode: bcode })
+        });
+        const data = await res.json();
+        if (data.success) {
+          handleIdentifiedBarcodeProduct({
+            barcode: data.barcode,
+            format: data.format || 'EAN-13',
+            checksum_valid: data.checksum_valid !== false,
+            source: data.source,
+            product: data.product,
+            edibility: data.edibility,
+            is_edible: data.is_edible
+          });
+          showToast(`Lookup success (${data.source}): ${data.product ? data.product.name : bcode}`, 'success');
+        } else {
+          showToast(`Lookup failed: ${data.error}`, 'error');
+        }
+      } catch (err) {
+        showToast(`Lookup error: ${err.message}`, 'error');
+      }
+    }
+
+    function handleIdentifiedBarcodeProduct(item) {
+      const prod = item.product || {};
+      const edibility = item.edibility || (item.is_edible ? 'EDIBLE' : 'NON-EDIBLE');
+      const bEdibility = document.getElementById('badge-edibility');
+
+      bEdibility.textContent = edibility;
+      bEdibility.className = 'badge';
+      if (edibility === 'EDIBLE') {
+        bEdibility.classList.add('badge-edible');
+      } else if (edibility === 'NON-EDIBLE') {
+        bEdibility.classList.add('badge-non-edible');
+      } else {
+        bEdibility.classList.add('badge-verify');
+      }
+
+      // Barcode banner display
+      const banner = document.getElementById('barcode-decoded-banner');
+      if (banner) {
+        banner.style.display = 'flex';
+        document.getElementById('disp-decoded-barcode').textContent = item.barcode;
+        document.getElementById('disp-barcode-format').textContent = item.format || 'EAN-13';
+        const chkStatus = document.getElementById('disp-checksum-status');
+        if (item.checksum_valid === false) {
+          chkStatus.textContent = '⚠️ Checksum Unverified';
+          chkStatus.style.color = 'var(--accent-amber)';
+        } else {
+          chkStatus.textContent = '✓ Checksum Valid';
+          chkStatus.style.color = 'var(--accent-emerald)';
+        }
+      }
+
+      // Lookup source badge
+      const bSource = document.getElementById('badge-lookup-source');
+      if (bSource) {
+        bSource.style.display = 'inline-block';
+        bSource.textContent = item.source || (prod.source ? prod.source.toUpperCase() : 'CATALOG');
+      }
+
+      const metaBox = document.getElementById('product-meta-box');
+      metaBox.style.display = 'flex';
+
+      const name = prod.name || prod.product_name || `Product (${item.barcode})`;
+      const cat = prod.category || 'General';
+      const brand = prod.brand || 'Standard';
+
+      document.getElementById('prod-name-display').textContent = name;
+      document.getElementById('prod-brand-display').textContent = `Brand: ${brand}`;
+      const originLabel = document.getElementById('prod-lookup-origin');
+      if (originLabel) {
+        originLabel.textContent = `Catalog Source: ${item.source || prod.source || 'Verified Records'}`;
+      }
+
+      // Product thumbnail image
+      const imgThumb = document.getElementById('img-product-thumb');
+      if (imgThumb) {
+        if (prod.image_url) {
+          imgThumb.src = prod.image_url;
+          imgThumb.style.display = 'block';
+        } else {
+          imgThumb.style.display = 'none';
+        }
+      }
+
+      // Pre-fill editable inputs so the user can review before inserting to Supabase
+      const editName = document.getElementById('inp-edit-name');
+      if (editName) editName.value = name;
+
+      const editCat = document.getElementById('sel-edit-category');
+      if (editCat) {
+        let matched = false;
+        for (let opt of editCat.options) {
+          if (opt.value.toLowerCase() === cat.toLowerCase()) {
+            editCat.value = opt.value;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) editCat.value = 'General';
+      }
+
+      currentScannedBarcodeProduct = {
+        barcode: item.barcode,
+        name: name,
+        brand: brand,
+        category: cat,
+        edibility: edibility,
+        source: item.source || prod.source || 'Catalog',
+        image_url: prod.image_url || null
+      };
+
+      const edibleSection = document.getElementById('edible-form-section');
+      const nonEdibleNotice = document.getElementById('non-edible-notice');
+
+      if (edibility === 'EDIBLE') {
+        edibleSection.style.display = 'block';
+        nonEdibleNotice.style.display = 'none';
+        evaluateExpiryStatus();
+      } else {
+        edibleSection.style.display = 'none';
+        nonEdibleNotice.style.display = 'block';
+      }
+    }
+
+    function evaluateExpiryStatus() {
+      const expDateVal = document.getElementById('inp-exp-date').value;
+      const bFreshness = document.getElementById('badge-freshness');
+      if (!expDateVal) {
+        bFreshness.textContent = 'DATE REQUIRED';
+        bFreshness.className = 'badge badge-verify';
+        return 'DATE VERIFICATION REQUIRED';
+      }
+
+      const today = new Date();
+      const expDate = new Date(expDateVal);
+      const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+
+      bFreshness.className = 'badge';
+      if (diffDays <= 0) {
+        bFreshness.textContent = 'EXPIRED';
+        bFreshness.classList.add('badge-expired');
+        return 'EXPIRED';
+      } else if (diffDays <= 30) {
+        bFreshness.textContent = `GOOD (${diffDays}d left)`;
+        bFreshness.classList.add('badge-good');
+        return 'GOOD';
+      } else {
+        bFreshness.textContent = `BEST (${diffDays}d left)`;
+        bFreshness.classList.add('badge-best');
+        return 'BEST';
+      }
+    }
+
+    function resetBarcodeScannerState() {
+      document.getElementById('scan-barcode-input').value = '';
+      const banner = document.getElementById('barcode-decoded-banner');
+      if (banner) banner.style.display = 'none';
+      const bSource = document.getElementById('badge-lookup-source');
+      if (bSource) bSource.style.display = 'none';
+      document.getElementById('product-meta-box').style.display = 'none';
+      document.getElementById('edible-form-section').style.display = 'none';
+      document.getElementById('non-edible-notice').style.display = 'none';
+      document.getElementById('badge-edibility').textContent = 'WAITING FOR SCAN';
+      document.getElementById('badge-edibility').className = 'badge badge-verify';
+      currentScannedBarcodeProduct = null;
+    }
+
+    async function confirmInventoryAddition() {
+      const barcode = document.getElementById('scan-barcode-input').value.trim();
+      if (!barcode) {
+        showToast('Please scan or lookup a barcode first.', 'warning');
+        return;
+      }
+
+      const qty = parseInt(document.getElementById('inp-quantity').value, 10);
+      if (isNaN(qty) || qty <= 0) {
+        showToast('Quantity must be a positive integer greater than zero.', 'warning');
+        return;
+      }
+
+      const shelfId = document.getElementById('sel-shelf-id').value;
+      
+      // Allow user review & edit from the form fields
+      const editNameInput = document.getElementById('inp-edit-name');
+      const editCatSelect = document.getElementById('sel-edit-category');
+      const name = (editNameInput && editNameInput.value.trim()) ? editNameInput.value.trim() : (currentScannedBarcodeProduct ? currentScannedBarcodeProduct.name : 'Scanned Item');
+      const cat = (editCatSelect && editCatSelect.value) ? editCatSelect.value : (currentScannedBarcodeProduct ? currentScannedBarcodeProduct.category : 'General');
+      const brand = currentScannedBarcodeProduct ? currentScannedBarcodeProduct.brand : 'Standard';
+      const isEdible = currentScannedBarcodeProduct ? (currentScannedBarcodeProduct.edibility === 'EDIBLE') : false;
+
+      let mfgDate = null;
+      let expDate = null;
+      let expiryStatus = 'BEST';
+
+      if (isEdible) {
+        mfgDate = document.getElementById('inp-mfg-date').value;
+        expDate = document.getElementById('inp-exp-date').value;
+        expiryStatus = evaluateExpiryStatus();
+
+        if (expiryStatus === 'EXPIRED') {
+          showToast('Expired products cannot be added to available inventory.', 'error');
+          return;
+        }
+      }
+
+      const payload = {
+        barcode: barcode,
+        name: name,
+        brand: brand,
+        category: cat,
+        shelf_id: shelfId,
+        quantity: qty,
+        mfg_date: mfgDate,
+        expiry_date: expDate,
+        expiry_status: expiryStatus
+      };
+
+      showToast(`Committing ${qty} units of '${name}' to Supabase...`, 'info');
+      try {
+        const res = await fetch('/api/shelves/assign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Successfully saved ${qty} units of '${name}' to Shelf ${shelfId}!`, 'success');
+          resetBarcodeScannerState();
+          loadShelvesData();
+        } else {
+          showToast(`Stock addition failed: ${data.error}`, 'error');
+        }
+      } catch (err) {
+        showToast(`Save error: ${err.message}`, 'error');
+      }
+    }
+
+    // ============================================================
+    // FEATURE 3: SHELF & LAYOUT INSPECTION (CAMERA-BASED WORKFLOW)
+    // ============================================================
+    async function loadShelvesData() {
+      try {
+        const res = await fetch('/api/shelves');
+        const data = await res.json();
+        if (!data.success) return;
+
+        const c = data.consistency_summary || {};
+        document.getElementById('kpi-normal-qty').textContent = c.normal_shelf_quantity ?? '--';
+        document.getElementById('kpi-shelves-count').textContent = c.total_shelves_monitored ?? '9';
+        document.getElementById('kpi-empty-qty').textContent = c.empty_positions_count ?? '0';
+
+        const shelvesGrid = document.getElementById('main-shelves-grid');
+        shelvesGrid.innerHTML = '';
+
+        Object.values(data.shelves || {}).forEach(shelf => {
+          const card = document.createElement('div');
+          card.className = 'shelf-card';
+
+          let itemsHtml = '';
+          (shelf.products || []).forEach(p => {
+            const statusClass = p.status === 'EXPIRED' ? 'badge-expired' : (p.status === 'GOOD' ? 'badge-good' : 'badge-best');
+            itemsHtml += `
+              <div class="shelf-item-row">
+                <div>
+                  <div style="font-weight: 700; font-size: 0.88rem;">${p.name}</div>
+                  <div style="font-size: 0.72rem; color: var(--text-dim);">${p.category}</div>
+                </div>
+                <div style="text-align: right;">
+                  <span style="font-family: 'JetBrains Mono'; font-weight: 800; font-size: 0.95rem;">${p.available_qty}</span>
+                  <span class="badge ${statusClass}" style="display: block; margin-top: 2px;">${p.status || 'BEST'}</span>
+                </div>
+              </div>
+            `;
+          });
+
+          card.innerHTML = `
+            <div class="shelf-header">
+              <span class="shelf-badge-id">SHELF ${shelf.shelf_id}</span>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">${shelf.zone || ''}</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${itemsHtml || '<div style="font-size: 0.78rem; color: var(--text-dim); text-align: center; padding: 12px;">Empty Shelf</div>'}
+            </div>
+          `;
+          shelvesGrid.appendChild(card);
+        });
+      } catch (err) {
+        console.error('Error loading shelves:', err);
+      }
+    }
+
+    async function inspectActiveShelfCamera() {
+      const shelfId = document.getElementById('inspect-shelf-target').value;
+      showToast(`Running CNN layout inspection on Shelf ${shelfId}...`, 'info');
+      try {
+        const res = await fetch(`/api/shelf/inspect?shelf_id=${shelfId}&conf=0.35`, { method: 'POST' });
+        const data = await res.json();
+        handleShelfInspectionResponse(data, shelfId);
+      } catch (err) {
+        showToast(`Inspection error: ${err.message}`, 'error');
+      }
+    }
+
+    async function uploadShelfPhoto(inputEl) {
+      if (!inputEl.files || !inputEl.files[0]) return;
+      const file = inputEl.files[0];
+      const shelfId = document.getElementById('inspect-shelf-target').value;
+      const formData = new FormData();
+      formData.append('image', file);
+
+      showToast(`Analyzing uploaded shelf photo for Shelf ${shelfId}...`, 'info');
+      try {
+        const res = await fetch(`/api/shelf/inspect?shelf_id=${shelfId}&conf=0.35`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        handleShelfInspectionResponse(data, shelfId);
+      } catch (err) {
+        showToast(`Upload error: ${err.message}`, 'error');
+      }
+    }
+
+    function handleShelfInspectionResponse(data, shelfId) {
+      if (!data.success) {
+        showToast(`Inspection failed: ${data.error}`, 'error');
+        return;
+      }
+
+      document.getElementById('res-shelf-pkg-count').textContent = data.total_detected_packages;
+      const misplacedCount = (data.misplaced_items || []).length;
+      const emptyCount = (data.empty_positions || []).length;
+      document.getElementById('res-shelf-misplaced-count').textContent = misplacedCount;
+      document.getElementById('kpi-misplaced-qty').textContent = misplacedCount;
+      document.getElementById('res-shelf-empty-count').textContent = emptyCount;
+      document.getElementById('kpi-empty-qty').textContent = emptyCount;
+      document.getElementById('res-shelf-rec-notes').textContent = data.reconciliation.reconciliation_notes || 'Reconciliation calculated.';
+
+      if (data.annotated_url) {
+        document.getElementById('shelf-inspect-img').src = data.annotated_url;
+        document.getElementById('shelf-inspect-label').textContent = `Inspected Frame (Shelf ${shelfId})`;
+      }
+
+      // Misplaced Alert Box
+      const misBox = document.getElementById('box-shelf-misplaced-alert');
+      const misText = document.getElementById('text-shelf-misplaced-details');
+      if (misplacedCount > 0) {
+        misText.innerHTML = data.misplaced_items.map(m => `
+          <div style="margin-bottom: 4px;">
+            • <strong>${m.display_name}</strong> detected in Shelf <strong>${m.detected_shelf}</strong>. Expected location: <strong>Shelf ${m.expected_shelf}</strong>. Please return this product to Shelf ${m.expected_shelf}.
+          </div>
+        `).join('');
+        misBox.style.display = 'block';
+      } else {
+        misBox.style.display = 'none';
+      }
+
+      // Empty Shelf & Out-of-Stock Alert Box
+      const emptyBox = document.getElementById('box-shelf-empty-alert');
+      const emptyText = document.getElementById('text-shelf-empty-details');
+      if (emptyCount > 0) {
+        emptyText.innerHTML = data.empty_positions.map(e => `
+          <div style="margin-bottom: 4px;">
+            • <strong>${e.display_name}</strong> is empty on Shelf ${e.shelf_id}. Status: <span style="color: var(--accent-rose); font-weight: 700;">${e.status}</span>. ${e.recommendation}
+          </div>
+        `).join('');
+        emptyBox.style.display = 'block';
+      } else {
+        emptyBox.style.display = 'none';
+      }
+
+      // Result Comparison Table
+      const tBody = document.getElementById('shelf-comparison-table-body');
+      tBody.innerHTML = '';
+      const tableRows = data.comparison_table || [];
+      if (tableRows.length === 0) {
+        tBody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-dim); padding: 16px;">No products detected or expected on this shelf.</td></tr>`;
+      } else {
+        tableRows.forEach(row => {
+          let badgeClass = 'badge-best';
+          if (row.status === 'Misplaced product') badgeClass = 'badge-verify';
+          else if (row.status === 'Shelf position empty') badgeClass = 'badge-good';
+          else if (row.status === 'Product out of stock') badgeClass = 'badge-expired';
+          else if (row.status === 'Replenishment recommended') badgeClass = 'badge-edible';
+          else if (row.status === 'Unable to determine') badgeClass = 'badge';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-weight: 600;">${row.product_name}</td>
+            <td>${row.category}</td>
+            <td style="font-family: 'JetBrains Mono';">${row.detected_shelf}</td>
+            <td style="font-family: 'JetBrains Mono'; color: var(--accent-cyan);">${row.expected_shelf}</td>
+            <td style="font-family: 'JetBrains Mono'; font-weight: 700; text-align: center;">${row.observed_count}</td>
+            <td style="font-family: 'JetBrains Mono'; text-align: center;">${row.recorded_count}</td>
+            <td style="font-family: 'JetBrains Mono'; color: ${row.discrepancy < 0 ? 'var(--accent-rose)' : (row.discrepancy > 0 ? 'var(--accent-amber)' : 'var(--accent-emerald)')}; text-align: center;">
+              ${row.discrepancy > 0 ? '+' : ''}${row.discrepancy}
+            </td>
+            <td><span class="badge ${badgeClass}">${row.status}</span></td>
+            <td style="font-size: 0.78rem; color: var(--text-muted);">${row.recommendation}</td>
+          `;
+          tBody.appendChild(tr);
+        });
+      }
+
+      // Pre-fill adjustment product if discrepancy exists
+      const discrepantItem = tableRows.find(r => r.discrepancy !== 0 && r.status !== 'Misplaced product');
+      if (discrepantItem) {
+        document.getElementById('inp-adj-prod').value = discrepantItem.product_name;
+        document.getElementById('inp-adj-qty').value = discrepantItem.observed_count;
+      }
+
+      showToast(`Shelf inspection complete: ${data.total_detected_packages} detected. ${misplacedCount} misplaced, ${emptyCount} empty positions.`, 'success');
+    }
+
+    async function submitShelfStockAdjustment() {
+      const shelfId = document.getElementById('inspect-shelf-target').value;
+      const prodName = document.getElementById('inp-adj-prod').value.trim();
+      const qty = parseInt(document.getElementById('inp-adj-qty').value, 10);
+
+      if (!prodName) {
+        showToast('Please specify product name or category.', 'warning');
+        return;
+      }
+      if (isNaN(qty) || qty < 0) {
+        showToast('Confirmed quantity must be a non-negative integer.', 'warning');
+        return;
+      }
+
+      if (!confirm(`Are you sure you want to review and update stock for '${prodName}' on Shelf ${shelfId} to ${qty} units in Supabase?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/shelf/adjust_stock', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            shelf_id: shelfId,
+            product_name: prodName,
+            confirmed_quantity: qty,
+            authorized_by: 'Supervisor',
+            reason: `Visual shelf audit confirmed count: ${qty} units`
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Stock updated in Supabase: ${data.message}`, 'success');
+          loadShelvesData();
+        } else {
+          showToast(`Adjustment failed: ${data.error}`, 'error');
+        }
+      } catch (err) {
+        showToast(`Adjustment error: ${err.message}`, 'error');
+      }
+    }
+
+    // ============================================================
+    // FEATURE 4: TREND ANALYSIS & REORDER RECOMMENDATIONS
+    // ============================================================
+    let currentTrendsPeriod = 7;
+    let trendsChartInstance = null;
+    let allTrendsProductRows = [];
+    let currentTop5Data = [];
+
+    function changeTrendsPeriod(period) {
+      currentTrendsPeriod = period;
+      document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById(`btn-period-${period}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const badge = document.getElementById('chart-period-badge');
+      if (badge) badge.textContent = `Comparing with prior ${period}-day period`;
+
+      loadTrendsData(period);
+    }
+
+    async function loadTrendsData(period = currentTrendsPeriod) {
+      const loadingState = document.getElementById('chart-loading-state');
+      const canvasContainer = document.getElementById('chart-canvas-container');
+      const emptyState = document.getElementById('chart-empty-state');
+
+      if (loadingState) loadingState.style.display = 'block';
+      if (canvasContainer) canvasContainer.style.opacity = '0.4';
+      if (emptyState) emptyState.style.display = 'none';
+
+      try {
+        const res = await fetch(`/api/trends/summary?period=${period}`);
+        const data = await res.json();
+        if (loadingState) loadingState.style.display = 'none';
+        if (canvasContainer) canvasContainer.style.opacity = '1';
+
+        if (!data.success) {
+          showToast(`Trend analysis error: ${data.error}`, 'error');
+          return;
+        }
+
+        currentTop5Data = data.top_5_trending || [];
+        allTrendsProductRows = data.products_table || [];
+
+        // 1. Render Top 5 Trending Chart
+        renderTop5TrendingChart(currentTop5Data);
+
+        // 2. Render Trending Restock Alerts
+        renderTrendingRestockAlerts(data.trending_restock_alerts || [], data.trending_stock_sufficient || [], data.low_stock_non_trending || []);
+
+        // 3. Render 6 KPI Insight Cards
+        renderTrendKPIs(data.kpis || {});
+
+        // 4. Render Product-Level Table
+        renderTrendsTable(allTrendsProductRows);
+
+      } catch (err) {
+        if (loadingState) loadingState.style.display = 'none';
+        if (canvasContainer) canvasContainer.style.opacity = '1';
+        console.error('Error loading trends:', err);
+        showToast(`Failed to load trends: ${err.message}`, 'error');
+      }
+    }
+
+    function renderTop5TrendingChart(top5) {
+      const emptyState = document.getElementById('chart-empty-state');
+      const canvasContainer = document.getElementById('chart-canvas-container');
+      const subtitle = document.getElementById('chart-subtitle');
+      const pillsContainer = document.getElementById('top5-metric-pills');
+
+      if (!top5 || top5.length === 0) {
+        if (emptyState) emptyState.style.display = 'block';
+        if (canvasContainer) canvasContainer.style.display = 'none';
+        if (pillsContainer) pillsContainer.innerHTML = '';
+        const emptyReason = document.getElementById('chart-empty-reason');
+        if (emptyReason) {
+          emptyReason.textContent = `No products had recorded barcode scans, shelf removals, or sales events in the last ${currentTrendsPeriod} days. Perform scans or shelf inspections to generate trend signals.`;
+        }
+        return;
+      }
+
+      if (emptyState) emptyState.style.display = 'none';
+      if (canvasContainer) canvasContainer.style.display = 'block';
+
+      if (top5.length < 5) {
+        subtitle.textContent = `Displaying ${top5.length} product${top5.length === 1 ? '' : 's'} with recorded activity in the last ${currentTrendsPeriod} days (${5 - top5.length} fewer than 5 due to lack of historical activity in Supabase).`;
+      } else {
+        subtitle.textContent = `Top 5 ranked products by composite trend score (0-100) combining barcode scan spikes, shelf position decreases, and verified stock movement.`;
+      }
+
+      const canvas = document.getElementById('chart-top5-trending');
+      if (!canvas) return;
+
+      if (trendsChartInstance) {
+        trendsChartInstance.destroy();
+      }
+
+      const labels = top5.map(p => `#${p.rank} ${p.product_name}`);
+      const scores = top5.map(p => p.trend_score);
+
+      // Color palette tailored for sleek dark mode
+      const barColors = [
+        'rgba(6, 182, 212, 0.85)',   // Cyan (Rank 1)
+        'rgba(16, 185, 129, 0.85)',  // Emerald (Rank 2)
+        'rgba(139, 92, 246, 0.85)',  // Violet (Rank 3)
+        'rgba(245, 158, 11, 0.85)',  // Amber (Rank 4)
+        'rgba(59, 130, 246, 0.85)'   // Blue (Rank 5)
+      ].slice(0, top5.length);
+
+      const borderColors = [
+        '#06b6d4',
+        '#10b981',
+        '#8b5cf6',
+        '#f59e0b',
+        '#3b82f6'
+      ].slice(0, top5.length);
+
+      const ctx = canvas.getContext('2d');
+      trendsChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Trend Score (0-100)',
+            data: scores,
+            backgroundColor: barColors,
+            borderColor: borderColors,
+            borderWidth: 2,
+            borderRadius: 6,
+            maxBarThickness: 54
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(14, 19, 31, 0.95)',
+              titleColor: '#fff',
+              bodyColor: '#cbd5e1',
+              borderColor: 'rgba(6, 182, 212, 0.5)',
+              borderWidth: 1,
+              padding: 12,
+              displayColors: false,
+              callbacks: {
+                title: function(items) {
+                  const idx = items[0].dataIndex;
+                  const item = top5[idx];
+                  return `#${item.rank} ${item.product_name} (${item.category})`;
+                },
+                label: function(context) {
+                  const idx = context.dataIndex;
+                  const p = top5[idx];
+                  return [
+                    `📊 Composite Trend Score: ${p.trend_score} / 100 (${p.trend_direction})`,
+                    `🔍 Barcode Scans: ${p.barcode_scans} (Growth: ${p.scan_growth_pct > 0 ? '+' : ''}${p.scan_growth_pct}%)`,
+                    `📉 Shelf Removals: ${p.shelf_removals} units | Empty Events: ${p.empty_shelf_events}`,
+                    `💰 Outflow/Sales: ${p.sales_outflow} units`,
+                    `📦 Actual Stock: ${p.current_stock} units | ROP: ${p.reorder_point}`,
+                    `⚡ Restock Status: ${p.restock_status}`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { family: 'Outfit', size: 12 } }
+            },
+            y: {
+              min: 0,
+              max: 100,
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 11 } },
+              title: {
+                display: true,
+                text: 'Trend Score (0 - 100)',
+                color: '#64748b',
+                font: { family: 'Outfit', size: 12, weight: 600 }
+              }
+            }
+          }
+        }
+      });
+
+      // Render rank cards below chart
+      if (pillsContainer) {
+        pillsContainer.innerHTML = top5.map(p => `
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; flex-direction: column; gap: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 800; font-size: 0.85rem; color: #fff;">#${p.rank} ${p.product_name}</span>
+              <span class="badge ${p.trend_direction === 'RISING' ? 'badge-good' : (p.trend_direction === 'FALLING' ? 'badge-expired' : 'badge-verify')}" style="font-size: 0.68rem;">
+                ${p.trend_direction === 'RISING' ? '↗ RISING' : (p.trend_direction === 'FALLING' ? '↘ FALLING' : '→ STABLE')}
+              </span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-dim); display: flex; justify-content: space-between;">
+              <span>Score: <strong style="color: var(--accent-cyan); font-family: 'JetBrains Mono';">${p.trend_score}</strong></span>
+              <span>Scans: <strong style="color: #fff;">${p.barcode_scans}</strong></span>
+              <span>Stock: <strong style="color: ${p.current_stock <= p.reorder_point ? 'var(--accent-rose)' : '#fff'}; font-family: 'JetBrains Mono';">${p.current_stock}</strong></span>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderTrendingRestockAlerts(alerts, sufficient, lowStockNonTrending) {
+      const container = document.getElementById('trending-restock-container');
+      const badgeCount = document.getElementById('badge-trending-restock-count');
+      const suffNote = document.getElementById('trending-sufficient-note');
+
+      if (badgeCount) {
+        badgeCount.textContent = `${alerts.length} Requiring Restock`;
+        badgeCount.className = alerts.length > 0 ? 'badge badge-expired' : 'badge badge-best';
+      }
+
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (alerts.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; background: rgba(16, 185, 129, 0.05); border: 1px dashed rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 24px; text-align: center;">
+            <div style="font-size: 1.4rem; margin-bottom: 6px;">✅</div>
+            <div style="font-weight: 700; color: #fff;">All Trending Products Have Sufficient Stock</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+              No trending products are currently at or below their reorder points. Inventory levels are healthy for observed activity.
+            </div>
+          </div>
+        `;
+      } else {
+        alerts.forEach(a => {
+          const isCritical = a.priority === 'CRITICAL';
+          const card = document.createElement('div');
+          card.className = `restock-alert-card ${isCritical ? '' : 'high-priority'}`;
+          card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+              <div>
+                <div style="font-weight: 800; font-size: 1.05rem; color: #fff;">${a.product_name}</div>
+                <div style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600;">${a.category}</div>
+              </div>
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <span class="badge-trending-tag">↗ ${a.trend_direction} (${a.trend_score})</span>
+                <span class="${isCritical ? 'badge-priority-critical' : 'badge-priority-high'}">${a.priority}</span>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 6px; font-size: 0.78rem;">
+              <div>
+                <span style="color: var(--text-dim); display: block;">Current Stock:</span>
+                <strong style="color: var(--accent-rose); font-family: 'JetBrains Mono'; font-size: 0.95rem;">${a.current_stock} units</strong>
+              </div>
+              <div>
+                <span style="color: var(--text-dim); display: block;">Reorder Point (ROP):</span>
+                <strong style="color: #fff; font-family: 'JetBrains Mono'; font-size: 0.95rem;">${a.reorder_point} units</strong>
+              </div>
+              <div>
+                <span style="color: var(--text-dim); display: block;">Avg Daily Demand:</span>
+                <strong style="color: #cbd5e1; font-family: 'JetBrains Mono';">${a.avg_daily_demand} / day</strong>
+              </div>
+              <div>
+                <span style="color: var(--text-dim); display: block;">Suggested Reorder:</span>
+                <strong style="color: #fcd34d; font-family: 'JetBrains Mono'; font-size: 0.95rem;">+${a.suggested_reorder} units</strong>
+              </div>
+            </div>
+
+            <div style="font-size: 0.8rem; color: #f1f5f9; line-height: 1.4;">
+              “${a.alert_message}”
+            </div>
+
+            <div style="font-size: 0.72rem; color: var(--text-dim);">
+              Reason: ${a.reason}
+            </div>
+
+            <div style="margin-top: 4px; display: flex; justify-content: flex-end;">
+              <button class="btn btn-emerald" style="font-size: 0.78rem; padding: 6px 14px;"
+                onclick="openRestockModal(${a.product_id}, '${escapeJsQuotes(a.product_name)}', '${escapeJsQuotes(a.category)}', ${a.current_stock}, ${a.reorder_point}, ${a.suggested_reorder})">
+                📦 Restock Now
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      // Sufficient stock notice
+      if (suffNote) {
+        if (sufficient && sufficient.length > 0) {
+          suffNote.innerHTML = `
+            <strong>Trending, stock sufficient:</strong> ${sufficient.map(s => `${s.product_name} (${s.current_stock} units in stock vs ROP ${s.reorder_point})`).join(', ')}. No restocking required.
+          `;
+          suffNote.style.display = 'block';
+        } else {
+          suffNote.style.display = 'none';
+        }
+      }
+    }
+
+    function renderTrendKPIs(kpis) {
+      const insContainer = document.getElementById('written-insights-container');
+      if (!insContainer) return;
+      insContainer.innerHTML = '';
+
+      const kpiDefs = [
+        { key: 'top_trending', icon: '🚀', color: 'var(--accent-cyan)' },
+        { key: 'highest_predicted_demand', icon: '📊', color: 'var(--accent-emerald)' },
+        { key: 'low_stock_alert', icon: '⚠️', color: 'var(--accent-amber)' },
+        { key: 'urgent_reorder', icon: '🚨', color: 'var(--accent-rose)' },
+        { key: 'demand_trend_summary', icon: '📈', color: '#38bdf8' },
+        { key: 'data_coverage', icon: 'ℹ️', color: 'var(--accent-violet)' }
+      ];
+
+      kpiDefs.forEach(def => {
+        const item = kpis[def.key];
+        if (!item) return;
+
+        const card = document.createElement('div');
+        card.className = 'insight-card';
+        card.innerHTML = `
+          <div class="insight-tag" style="color: ${def.color};">${def.icon} ${item.title}</div>
+          <div class="insight-headline">${item.product || item.count || item.status || item.coverage_pct + '%' || 'Active'}</div>
+          <div class="insight-detail">${item.detail || item.message || item.explanation || ''}</div>
+        `;
+        insContainer.appendChild(card);
+      });
+    }
+
+    function renderTrendsTable(products) {
+      const tbody = document.getElementById('trends-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (!products || products.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; color: var(--text-dim); padding: 24px;">No product records available in Supabase.</td></tr>`;
+        return;
+      }
+
+      products.forEach(p => {
+        const tr = document.createElement('tr');
+        let statusBadge = 'badge-best';
+        if (p.restock_status === 'RESTOCK NEEDED') statusBadge = 'badge-expired';
+        else if (p.restock_status === 'LOW STOCK') statusBadge = 'badge-good';
+        else if (p.restock_status === 'TRENDING - SUFFICIENT') statusBadge = 'badge-best';
+        else if (p.restock_status === 'INSUFFICIENT DATA') statusBadge = 'badge';
+
+        const dirIcon = p.trend_direction === 'RISING' ? '↗ RISING' : (p.trend_direction === 'FALLING' ? '↘ FALLING' : (p.trend_direction === 'STABLE' ? '→ STABLE' : '--'));
+
+        tr.innerHTML = `
+          <td style="font-weight: 700; color: #fff;">${p.product_name}</td>
+          <td><span class="badge" style="background: rgba(255,255,255,0.05); color: #c4b5fd;">${p.category}</span></td>
+          <td style="font-size: 0.8rem; color: #cbd5e1;">${p.barcode_scans_text}</td>
+          <td style="font-size: 0.8rem; color: #cbd5e1;">${p.stock_movement_text}</td>
+          <td style="font-family: 'JetBrains Mono'; font-weight: 800; color: ${p.current_stock <= p.reorder_point ? 'var(--accent-rose)' : '#fff'};">${p.current_stock}</td>
+          <td style="font-family: 'JetBrains Mono'; color: var(--text-muted);">${p.avg_daily_demand}/d</td>
+          <td style="font-family: 'JetBrains Mono'; color: ${p.has_valid_forecast ? 'var(--accent-cyan)' : 'var(--text-dim)'};">${p.predicted_demand_text}</td>
+          <td style="font-family: 'JetBrains Mono'; font-weight: 700; color: var(--accent-cyan);">${p.trend_score}</td>
+          <td style="font-size: 0.78rem;">${dirIcon}</td>
+          <td style="font-family: 'JetBrains Mono';">${p.reorder_point}</td>
+          <td style="font-family: 'JetBrains Mono'; color: ${p.suggested_reorder > 0 ? '#fbbf24' : '#94a3b8'}; font-weight: 700;">${p.suggested_reorder > 0 ? '+' + p.suggested_reorder : '0'}</td>
+          <td><span class="badge ${statusBadge}">${p.restock_status}</span></td>
+          <td>
+            ${p.needs_restock || p.suggested_reorder > 0 ? `
+              <button class="btn btn-emerald" style="padding: 4px 10px; font-size: 0.72rem;"
+                onclick="openRestockModal(${p.product_id}, '${escapeJsQuotes(p.product_name)}', '${escapeJsQuotes(p.category)}', ${p.current_stock}, ${p.reorder_point}, ${p.suggested_reorder})">
+                Restock
+              </button>
+            ` : `<span style="color: var(--text-dim); font-size: 0.72rem;">Sufficient</span>`}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterTrendsTable() {
+      const query = (document.getElementById('trends-table-filter').value || '').toLowerCase().trim();
+      if (!query) {
+        renderTrendsTable(allTrendsProductRows);
+        return;
+      }
+      const filtered = allTrendsProductRows.filter(p =>
+        (p.product_name || '').toLowerCase().includes(query) ||
+        (p.category || '').toLowerCase().includes(query)
+      );
+      renderTrendsTable(filtered);
+    }
+
+    function escapeJsQuotes(str) {
+      if (!str) return '';
+      return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    // ============================================================
+    // RESTOCK CONFIRMATION MODAL LOGIC (NEVER AUTOMATIC)
+    // ============================================================
+    function openRestockModal(productId, productName, category, currentStock, rop, suggestedQty) {
+      document.getElementById('modal-restock-pid').value = productId;
+      document.getElementById('modal-restock-pname').textContent = productName;
+      document.getElementById('modal-restock-pcat').textContent = category;
+      document.getElementById('modal-restock-curr-stock').textContent = `${currentStock} units`;
+      document.getElementById('modal-restock-rop').textContent = `${rop} units`;
+      document.getElementById('modal-restock-qty').value = Math.max(1, suggestedQty || 10);
+
+      document.getElementById('restock-confirm-modal').classList.add('show');
+    }
+
+    function closeRestockModal() {
+      document.getElementById('restock-confirm-modal').classList.remove('show');
+    }
+
+    async function confirmRestockSubmission() {
+      const pid = parseInt(document.getElementById('modal-restock-pid').value, 10);
+      const qty = parseInt(document.getElementById('modal-restock-qty').value, 10);
+      const shelfId = document.getElementById('modal-restock-shelf').value;
+      const auth = document.getElementById('modal-restock-auth').value.trim() || 'Supervisor';
+      const pName = document.getElementById('modal-restock-pname').textContent;
+
+      if (!pid || isNaN(qty) || qty <= 0) {
+        showToast('Valid product and positive reorder quantity required.', 'warning');
+        return;
+      }
+
+      showToast(`Executing confirmed restock of ${qty} units for ${pName}...`, 'info');
+      try {
+        const res = await fetch('/api/trends/restock/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: pid,
+            quantity: qty,
+            shelf_id: shelfId,
+            authorized_by: auth
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Restock confirmed: ${data.message}`, 'success');
+          closeRestockModal();
+          loadTrendsData(currentTrendsPeriod);
+          if (typeof loadShelvesData === 'function') loadShelvesData();
+        } else {
+          showToast(`Restock failed: ${data.error}`, 'error');
+        }
+      } catch (err) {
+        showToast(`Restock network error: ${err.message}`, 'error');
+      }
+    }
+
+
+    // ============================================================
+    // UTILITY TAB: SUPABASE DATABASE VIEWER
+    // ============================================================
+    async function loadDatabaseTable(page = 1) {
+      dbCurrentPage = page;
+      dbCurrentTable = document.getElementById('db-table-select').value;
+      const search = document.getElementById('db-search-input').value.trim();
+
+      document.getElementById('db-table-info').textContent = `Loading ${dbCurrentTable}...`;
+
+      try {
+        const res = await fetch(`/api/db/query?table=${dbCurrentTable}&page=${page}&limit=12&search=${encodeURIComponent(search)}`);
+        const data = await res.json();
+
+        if (!data.success) {
+          document.getElementById('db-table-info').textContent = `Error: ${data.error}`;
+          return;
+        }
+
+        document.getElementById('db-table-info').textContent = 
+          `Showing ${data.rows.length} of ${data.total_records} records in '${data.table}'`;
+        document.getElementById('db-page-num').textContent = `Page ${data.page} of ${data.total_pages}`;
+
+        document.getElementById('btn-db-prev').disabled = (data.page <= 1);
+        document.getElementById('btn-db-next').disabled = (data.page >= data.total_pages);
+
+        const thead = document.getElementById('db-table-head');
+        thead.innerHTML = '';
+        const trHead = document.createElement('tr');
+        (data.columns || []).forEach(col => {
+          const th = document.createElement('th');
+          th.textContent = col.replace(/_/g, ' ').toUpperCase();
+          trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+
+        const tbody = document.getElementById('db-table-rows');
+        tbody.innerHTML = '';
+
+        if (data.rows.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="${data.columns.length || 1}" style="text-align: center; padding: 24px; color: var(--text-dim);">No records found in table '${data.table}'.</td></tr>`;
+          return;
+        }
+
+        data.rows.forEach(row => {
+          const tr = document.createElement('tr');
+          data.columns.forEach(col => {
+            const td = document.createElement('td');
+            let val = row[col];
+            if (val === null || val === undefined) val = '<span style="color: var(--text-dim);">-</span>';
+            else if (typeof val === 'object') val = JSON.stringify(val);
+            td.innerHTML = val;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        document.getElementById('db-table-info').textContent = `Connection error: ${err.message}`;
+      }
+    }
+
+    function changeDbPage(delta) {
+      loadDatabaseTable(dbCurrentPage + delta);
+    }
+
+    // ============================================================
+    // DIAGNOSTICS MODAL & TELEMETRY
+    // ============================================================
+    function openDiagnosticsModal() {
+      const modal = document.getElementById('modal-diagnostics');
+      if (modal) {
+        modal.classList.add('show');
+        fetchAndRenderDiagnostics();
+      }
+    }
+
+    function closeDiagnosticsModal() {
+      const modal = document.getElementById('modal-diagnostics');
+      if (modal) modal.classList.remove('show');
+    }
+
+    async function fetchAndRenderDiagnostics() {
+      const loading = document.getElementById('diagnostics-loading');
+      const content = document.getElementById('diagnostics-content');
+      if (loading) loading.style.display = 'block';
+      if (content) content.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/diagnostics');
+        const data = await res.json();
+        if (loading) loading.style.display = 'none';
+        if (content) content.style.display = 'flex';
+
+        // Render Cards Grid
+        const grid = document.getElementById('diag-grid');
+        grid.innerHTML = '';
+
+        const cam = data.selected_camera || {};
+        const model = data.product_recognition_model || {};
+        const catMap = data.category_mapping || {};
+        const barcode = data.barcode_decoder || {};
+        const ext = data.external_lookup_provider || {};
+        const supa = data.supabase_integration || {};
+
+        const cards = [
+          {
+            title: '📹 Camera Subsystem',
+            status: cam.is_connected ? 'CONNECTED' : 'DISCONNECTED',
+            badgeClass: cam.is_connected ? 'badge-best' : 'badge-expired',
+            details: [
+              `Source: <strong>${cam.source_type || 'Unknown'}</strong>`,
+              `FPS: <strong>${cam.current_fps || 0}</strong> | Frames: <strong>${cam.frame_count || 0}</strong>`,
+              `Stream: <code>${cam.phone_stream_url || 'DirectShow (Index 0)'}</code>`
+            ]
+          },
+          {
+            title: '🧠 Product Recognition Model',
+            status: model.is_loaded ? 'LOADED & READY' : 'OFFLINE',
+            badgeClass: model.is_loaded ? 'badge-best' : 'badge-expired',
+            details: [
+              `Architecture: <strong>${model.architecture || 'YOLOv8s-World v2'}</strong>`,
+              `Task: <code>${model.task_type || 'detect'}</code> | Loaded in Memory: <strong>${model.reused_singleton ? 'Yes (Singleton)' : 'No'}</strong>`,
+              `Conf Cutoff: <strong>${model.confidence_threshold}</strong> | Uncertain Cutoff: <strong>${model.uncertain_threshold}</strong>`,
+              `Weights: <span style="font-size: 0.7rem; color: var(--text-dim);">${model.model_path || '--'}</span>`
+            ]
+          },
+          {
+            title: '🏷️ 17 Category Mapping',
+            status: catMap.status || 'OK',
+            badgeClass: 'badge-good',
+            details: [
+              `Total Categories: <strong>${catMap.total_categories || 17}</strong>`,
+              `Prompts Configured: <strong>${model.prompts_count || 51}</strong>`,
+              `Categories: <span style="font-size: 0.7rem; color: #cbd5e1;">${(catMap.categories_list || []).slice(0, 8).join(', ')}... (+9 more)</span>`
+            ]
+          },
+          {
+            title: '🔍 Barcode Multi-Engine',
+            status: barcode.primary_backend ? 'ACTIVE' : 'WARNING',
+            badgeClass: 'badge-best',
+            details: [
+              `Primary: <strong>${barcode.primary_backend || 'zxing-cpp'}</strong>`,
+              `Fallback: <strong>${barcode.secondary_backend || 'cv2.barcode'}</strong>`,
+              `Supported: <span style="font-size: 0.7rem; color: #cbd5e1;">${(barcode.supported_formats || []).join(', ')}</span>`
+            ]
+          },
+          {
+            title: '🌐 External Catalog Lookup',
+            status: ext.status || 'READY',
+            badgeClass: ext.status && ext.status.includes('ACTIVE') ? 'badge-best' : 'badge-verify',
+            details: [
+              `Provider: <strong>${ext.configured_provider || 'Open Food Facts (v0)'}</strong>`,
+              `Priority: <code>1. Supabase Exact → 2. External API → 3. Catalog Seed → 4. Manual Entry</code>`,
+              `Cached Items: <strong>${ext.cache_entries || 0}</strong> | Credentials: <span style="color: var(--accent-emerald);">Protected (Backend .env)</span>`
+            ]
+          },
+          {
+            title: '⚡ Supabase Database',
+            status: supa.status || 'ONLINE',
+            badgeClass: supa.status === 'ONLINE' ? 'badge-best' : 'badge-expired',
+            details: [
+              `Endpoint: <code style="font-size: 0.72rem;">${supa.supabase_url || 'Active'}</code>`,
+              `Products Count: <strong>${supa.total_products || '--'}</strong>`,
+              `Auth Service Key: <strong style="color: var(--accent-emerald);">${supa.key_configured ? 'Configured ✓' : 'Missing'}</strong>`,
+              `Duplicate Guard: <strong>UPSERT / Existing Barcode Update Active ✓</strong>`
+            ]
+          }
+        ];
+
+        cards.forEach(c => {
+          const div = document.createElement('div');
+          div.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px; display: flex; flex-direction: column; gap: 6px;';
+          div.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">
+              <span style="font-weight: 700; font-size: 0.85rem; color: #fff;">${c.title}</span>
+              <span class="badge ${c.badgeClass}" style="font-size: 0.68rem;">${c.status}</span>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 3px;">
+              ${c.details.map(d => `<div>${d}</div>`).join('')}
+            </div>
+          `;
+          grid.appendChild(div);
+        });
+
+        // Latest inference detail box
+        const latestBox = document.getElementById('diag-latest-inference');
+        if (latestBox) {
+          latestBox.textContent = JSON.stringify(data.latest_inference || { status: 'Awaiting first capture' }, null, 2);
+        }
+
+      } catch (err) {
+        if (loading) loading.innerHTML = `<span style="color: var(--accent-rose);">Diagnostics query error: ${err.message}</span>`;
+      }
+    }
+  </script>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: SYSTEM & HARDWARE DIAGNOSTICS -->
+  <!-- ============================================================ -->
+  <div id="modal-diagnostics" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 760px; max-height: 88vh; overflow-y: auto;">
+      <div class="card-header" style="margin-bottom: 0; padding-bottom: 10px;">
+        <div class="card-title">⚙️ System &amp; Hardware Diagnostics</div>
+        <button class="btn" style="padding: 4px 10px;" onclick="closeDiagnosticsModal()">✕</button>
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-muted);">
+        Real-time operational telemetry from camera pipelines, neural networks, barcode engines, external lookup APIs, and Supabase database.
+      </div>
+      
+      <div id="diagnostics-loading" style="text-align: center; padding: 24px; color: var(--accent-cyan); font-family: 'JetBrains Mono';">
+        Fetching live diagnostics...
+      </div>
+
+      <div id="diagnostics-content" style="display: none; flex-direction: column; gap: 14px;">
+        <div id="diag-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 10px;">
+        </div>
+
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+          <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; color: var(--accent-cyan);">Latest Inference Snapshot Telemetry</div>
+          <pre id="diag-latest-inference" style="font-family: 'JetBrains Mono'; font-size: 0.72rem; color: #94a3b8; background: #000; padding: 10px; border-radius: 6px; overflow-x: auto; max-height: 160px;"></pre>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
+        <button class="btn" onclick="fetchAndRenderDiagnostics()">🔄 Refresh Metrics</button>
+        <button class="btn btn-primary" onclick="closeDiagnosticsModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER-CONFIRMED RESTOCK MODAL (NEVER AUTOMATIC) -->
+  <div class="modal-backdrop" id="restock-confirm-modal">
+    <div class="modal-box">
+      <div class="card-header" style="margin-bottom: 0; padding-bottom: 10px;">
+        <div class="card-title">📦 Confirm Restock Replenishment Order</div>
+        <button class="btn" style="padding: 4px 10px;" onclick="closeRestockModal()">✕</button>
+      </div>
+      <div style="font-size: 0.82rem; color: var(--text-muted);">
+        Review replenishment details below. No purchase orders or database updates occur automatically without your explicit confirmation.
+      </div>
+
+      <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+        <input type="hidden" id="modal-restock-pid">
+        <div style="display: flex; justify-content: space-between;">
+          <span style="font-size: 0.8rem; color: var(--text-dim);">Product:</span>
+          <span style="font-size: 0.9rem; font-weight: 700; color: #fff;" id="modal-restock-pname">--</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="font-size: 0.8rem; color: var(--text-dim);">Category:</span>
+          <span style="font-size: 0.85rem; color: var(--accent-cyan);" id="modal-restock-pcat">--</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="font-size: 0.8rem; color: var(--text-dim);">Current Warehouse Stock:</span>
+          <span style="font-size: 0.9rem; font-family: 'JetBrains Mono'; font-weight: 700; color: var(--accent-rose);" id="modal-restock-curr-stock">--</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="font-size: 0.8rem; color: var(--text-dim);">Calculated Reorder Point (ROP):</span>
+          <span style="font-size: 0.9rem; font-family: 'JetBrains Mono'; font-weight: 700; color: #fff;" id="modal-restock-rop">--</span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div>
+          <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700; display: block; margin-bottom: 4px;">Replenishment Quantity</label>
+          <input type="number" id="modal-restock-qty" class="form-control" min="1" value="10">
+        </div>
+        <div>
+          <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700; display: block; margin-bottom: 4px;">Target Shelf / Location</label>
+          <select id="modal-restock-shelf" class="form-control">
+            <option value="A1">Shelf A1 (Biscuits)</option>
+            <option value="A2">Shelf A2 (Chips & Snacks)</option>
+            <option value="A3">Shelf A3 (Cookies & Snacks)</option>
+            <option value="B1">Shelf B1 (Pens & Scales)</option>
+            <option value="B2">Shelf B2 (Pencils & Books)</option>
+            <option value="B3">Shelf B3 (Stationery & Erasers)</option>
+            <option value="C1">Shelf C1 (Oral & Personal Care)</option>
+            <option value="C2">Shelf C2 (Electronics)</option>
+            <option value="C3">Shelf C3 (Cables & Wires)</option>
+            <option value="S1" selected>Shelf S1 (Main Storage)</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700; display: block; margin-bottom: 4px;">Authorized By</label>
+        <input type="text" id="modal-restock-auth" class="form-control" value="Inventory Manager">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+        <button class="btn" onclick="closeRestockModal()">Cancel</button>
+        <button class="btn btn-emerald" onclick="confirmRestockSubmission()" style="font-weight: 700;">✅ Execute Restock in Supabase</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
